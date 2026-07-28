@@ -1,0 +1,20 @@
+# 团队示例：跨品种套利（manual + instances）
+run_id: example_cross_product_2020
+strategy: example_cross_product
+
+capital: 1000000
+
+universe:
+  mode: manual
+  products: [A, B]
+  exclude: []
+  use_trade_flag: false
+
+data:
+  source: csv_catalog
+  data_dir: /Volumes/JR/数据文档/国内期货数据/套利数据-跨品种
+  years: ['2020']
+  future_list: config/future_list.csv
+
+output:
+  dir: output

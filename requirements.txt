@@ -1,0 +1,9 @@
+pandas>=2.0
+numpy>=1.24
+numba>=0.58
+PyYAML>=6.0
+xlsxwriter>=3.0
+openpyxl>=3.1
+sortedcontainers>=2.4
+pytest>=8.0
+pyarrow>=14.0

@@ -1,0 +1,123 @@
+# ============================================================
+# 绩效评价系统配置
+# ============================================================
+
+# 无风险利率（年化，用于夏普/索提诺比率计算）
+risk_free_rate: 0.02
+
+# 年交易日数（用于年化计算）
+trading_days_per_year: 252
+
+# ============================================================
+# 时段映射（根据 open_time 自动推算 session）
+# 格式：[start_hhmm, end_hhmm, session_name]
+# 判断规则：start <= open_time < end
+# ============================================================
+session_rules:
+  - [2100, 2130, "夜盘开盘"]
+  - [2130, 2300, "夜盘盘中"]
+  - [900,  930,  "早盘开盘"]
+  - [930,  1130, "早盘盘中"]
+  - [1330, 1400, "午盘开盘"]
+  - [1400, 1500, "尾盘"]
+
+# ============================================================
+# 组合月度状态判定规则
+# ============================================================
+portfolio_monthly_status:
+  normal:
+    monthly_return_gt: 0
+    positive_symbol_ratio_ge: 0.6
+  watch:
+    monthly_return_gt: 0
+    positive_symbol_ratio_lt: 0.5
+  warning:
+    monthly_return_lt: 0
+    positive_symbol_ratio_lt: 0.5
+  severe_warning:
+    consecutive_warning_months_ge: 2
+    max_consecutive_loss_days_ge: 8
+    max_consecutive_loss_pct_lt: -0.05
+
+# ============================================================
+# 品种月度状态判定规则
+# ============================================================
+symbol_monthly_status:
+  normal:
+    monthly_return_gt: 0
+    win_rate_ge: 0.5
+  watch:
+    monthly_return_lte: 0
+    win_rate_ge: 0.4
+  warning:
+    monthly_return_lt: 0
+    win_rate_lt: 0.5
+  severe_warning:
+    consecutive_warning_months_ge: 2
+    max_drawdown_gt: 0.15
+
+# ============================================================
+# 组合周度状态判定规则
+# ============================================================
+portfolio_weekly_status:
+  normal:
+    weekly_return_gt: 0
+    positive_symbol_ratio_ge: 0.6
+    max_consecutive_loss_days_le: 2
+  watch:
+    weekly_return_slightly_negative_gt: -0.01
+    positive_symbol_ratio_ge: 0.4
+  warning:
+    weekly_return_lt: -0.01
+    max_consecutive_loss_days_ge: 4
+    max_consecutive_loss_pct_lt: -0.02
+    positive_symbol_ratio_lt: 0.3
+  severe_warning:
+    consecutive_warning_weeks_ge: 2
+    weekly_loss_gt: 0.03
+    max_drawdown_gt: 0.05
+    positive_symbol_ratio_lt: 0.2
+  recovery:
+    weekly_return_gt: 0
+    positive_symbol_ratio_ge: 0.6
+
+# ============================================================
+# 品种周度状态判定规则
+# ============================================================
+symbol_weekly_status:
+  normal:
+    weekly_return_gt: 0
+    win_rate_ge: 0.5
+    max_consecutive_loss_days_le: 2
+  watch:
+    weekly_return_slightly_negative_gt: -0.01
+    win_rate_ge: 0.4
+  warning:
+    weekly_return_lt: -0.01
+    max_consecutive_loss_days_ge: 4
+    max_consecutive_loss_pct_lt: -0.02
+    max_drawdown_gt: 0.03
+  severe_warning:
+    consecutive_warning_weeks_ge: 2
+    weekly_loss_gt: 0.03
+    max_drawdown_gt: 0.05
+  recovery:
+    weekly_return_gt: 0
+    win_rate_ge: 0.5
+
+# ============================================================
+# 时段归因表状态判定（月度）
+# ============================================================
+session_monthly_status:
+  normal:
+    monthly_return_gt: 0
+    win_rate_ge: 0.5
+  watch:
+    monthly_return_lte: 0
+    win_rate_ge: 0.4
+  warning:
+    monthly_return_lt: 0
+    win_rate_lt: 0.45
+  severe_warning:
+    consecutive_warning_months_ge: 2
+    max_drawdown_gt: 0.05

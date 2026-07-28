@@ -1,0 +1,33 @@
+# Smoke：豆一跨期 + 菜油豆油跨品种，2024 年
+round_id: smoke
+mode: smoke
+
+data:
+  data_dir: D:/data
+  cross_dir: D:/data/跨品种
+  dom_table_dir: D:/data/商品期货-主力合约
+  years: ["2024"]
+
+universe:
+  calendar_products: [A]
+  cross_pairs: [OI&Y]
+  max_spreads_per_product: 2   # smoke 限速
+
+labels:
+  horizons_min: [5, 15, 60, 240]
+
+factors:
+  lookback: 60
+  vol_short: 20
+  vol_long: 120
+
+filters:
+  require_trade: true
+  max_eff_spread_ticks: 50
+
+output:
+  dir: research/output
+
+selection:
+  min_abs_ic: 0.02
+  min_icir: 0.3

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# 回测产物
+output/**
+!output/.gitkeep
+
+# 因子挖掘产物（本地保留，不上传 GitHub）
+research/output/**
+
+# 团队仓库不上传（本地可保留）
+docs/
+.cursor/
+
+strategy/strategies/boll_grid/
+strategy/strategies/gaozong2/
+strategy/strategies/gaozong2_spread/
+strategy/strategies/haoyuxiangv3/
+strategy/strategies/tangye2/
+strategy/strategies/tangye2_spread/
+strategy/strategies/wangzhihao/
+strategy/strategies/xuhe/
+strategy/strategies/zhouhaotian/
+
+tests/test_boll_grid.py
+tests/test_gaozong2.py
+tests/test_haoyuxiangv3.py
+tests/test_tangye2.py
+tests/test_wangzhihao.py
+tests/test_xuhe.py
+tests/test_zhouhaotian.py
+tests/test_spread_proto_strategies.py
+tests/test_performance_report.py
+
+# 临时 / 对拍中间件
+tools/_cache/
+config/_generated/
+*.tmp

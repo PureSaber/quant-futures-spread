@@ -1,0 +1,48 @@
+# 公平对照 z_close（factor_single，与 Top5 同参）
+
+run_id: factor_z_close_15_A_2024
+
+strategy: factor_z_close_15
+
+
+
+capital: 1000000
+
+
+
+universe:
+
+  mode: calendar_dom_sub
+
+  products: [A]
+
+  exclude: []
+
+  use_trade_flag: false
+
+  dom_table_dir: D:/data/商品期货-主力合约
+
+
+
+data:
+
+  source: csv_spread
+
+  data_dir: D:/data
+
+  years: ['2024']
+
+  future_list: config/future_list.csv
+
+
+
+roll:
+
+  on_switch: defer_until_flat
+
+
+
+output:
+
+  dir: output
+

@@ -1,0 +1,6 @@
+# Copy to config/data_paths.local.yaml and adjust paths for your machine.
+# Or set QUANT_FUTURES_DATA_ROOT environment variable.
+
+data_dir: D:/data
+cross_dir: D:/data/跨品种
+dom_table_dir: D:/data/商品期货-主力合约

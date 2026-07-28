@@ -1,0 +1,11 @@
+defaults:
+  source: comb
+  trade_mode: 1
+  lookback: 60
+  entry_z: 1.5
+  capital_per_layer: [500000]
+
+instances:
+  - symbol: "A2003&B2003"
+  - symbol: "A2005&B2005"
+  - symbol: "A2007&B2007"

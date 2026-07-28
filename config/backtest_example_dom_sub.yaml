@@ -1,0 +1,24 @@
+# 团队示例：主力×次主力日历套利（calendar_dom_sub）
+run_id: example_dom_sub_A_2020
+strategy: example_dom_sub
+
+capital: 1000000
+
+universe:
+  mode: calendar_dom_sub
+  products: [A]
+  exclude: []
+  use_trade_flag: false
+  dom_table_dir: /Volumes/JR/数据文档/商品期货-主力合约
+
+data:
+  source: csv_catalog
+  data_dir: /Volumes/JR/数据文档/国内期货数据/套利数据-主力次主力
+  years: ['2020']
+  future_list: config/future_list.csv
+
+roll:
+  on_switch: defer_until_flat
+
+output:
+  dir: output

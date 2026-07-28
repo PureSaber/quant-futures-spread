@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-futures-spread"
+version = "0.1.0"
+description = "Chinese commodity futures spread backtest and factor research engine"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "numba>=0.58",
+    "PyYAML>=6.0",
+    "xlsxwriter>=3.0",
+    "openpyxl>=3.1",
+    "sortedcontainers>=2.4",
+    "pyarrow>=14.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.9.0"]
+
+[project.scripts]
+qfs-backtest = "run_backtest:main"
+
+[tool.setuptools]
+py-modules = ["run_backtest", "performance"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+    "output",
+    "tools/_cache",
+    "config/_generated",
+    "backtest",
+    "tools",
+    "strategy/strategies/boll_grid",
+    "strategy/strategies/gaozong2",
+    "strategy/strategies/gaozong2_spread",
+    "strategy/strategies/haoyuxiangv3",
+    "strategy/strategies/tangye2",
+    "strategy/strategies/tangye2_spread",
+    "strategy/strategies/wangzhihao",
+    "strategy/strategies/xuhe",
+    "strategy/strategies/zhouhaotian",
+]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501", "E402", "E731"]

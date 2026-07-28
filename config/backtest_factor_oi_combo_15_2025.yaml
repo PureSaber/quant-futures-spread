@@ -1,0 +1,23 @@
+run_id: factor_oi_combo_15_OI_2025
+strategy: factor_oi_combo_15
+
+capital: 1000000
+
+universe:
+  mode: calendar_dom_sub
+  products: [OI]
+  exclude: []
+  use_trade_flag: false
+  dom_table_dir: D:/data/商品期货-主力合约
+
+data:
+  source: csv_spread
+  data_dir: D:/data
+  years: ['2025']
+  future_list: config/future_list.csv
+
+roll:
+  on_switch: defer_until_flat
+
+output:
+  dir: output

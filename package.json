@@ -1,0 +1,7 @@
+{
+  "name": "quant-futures-spread",
+  "private": true,
+  "scripts": {
+    "lint": "ruff check ."
+  }
+}

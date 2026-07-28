@@ -1,0 +1,389 @@
+strategies:
+  - id: example_dom_sub
+    module: strategies.example_dom_sub.strategy
+    enabled: true
+    params:
+      source: comb
+      trade_mode: 1
+      lookback: 60
+      entry_z: 1.5
+      capital_per_layer: [500000]
+
+  - id: example_cross_product
+    module: strategies.example_cross_product.strategy
+    enabled: true
+    instances: strategy_instances/example_cross_product.yaml
+
+  - id: factor_z_close_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: z_close
+      horizon_min: 15
+      lookback: 60
+      entry_z: 1.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_mid_dev_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: mid_dev
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_pct_rank_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: pct_rank
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_mom_5
+    module: strategies.factor_single.strategy
+    enabled: false
+    params:
+      factor: mom_5
+      horizon_min: 5
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_carry_ann_60
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: carry_ann
+      horizon_min: 60
+      lookback: 60
+      entry_z: 1.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_breakout_down_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: breakout_down_60
+      horizon_min: 15
+      lookback: 60
+      ic_sign: 1
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_combo_mid_pct_15
+    module: strategies.factor_combo.strategy
+    enabled: true
+    params:
+      signal_factor: pct_rank
+      gate_factor: mid_dev
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      gate_low: 0.1
+      gate_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_oi_mid_dev_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: mid_dev
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.05
+      entry_high: 0.95
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 15
+      cooldown_bars: 15
+      max_eff_spread: 10
+      use_conservative_fill: true
+      capital_per_layer: [500000]
+
+  # ── Round2 未测因子验证 ──
+  - id: factor_depth_imb_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: depth_imb
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_range_pct_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: range_pct
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_vol_ratio_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: vol_ratio
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_breakout_up_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: breakout_up_60
+      horizon_min: 15
+      lookback: 60
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_boll_pct_b_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: boll_pct_b
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_z_bid_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: z_bid
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_z_ask_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: z_ask
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_quote_width_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: quote_width
+      horizon_min: 15
+      lookback: 60
+      entry_z: 1.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_realized_vol_20_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: realized_vol_20
+      horizon_min: 15
+      lookback: 60
+      entry_z: 1.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_realized_vol_120_60
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: realized_vol_120
+      horizon_min: 60
+      lookback: 60
+      entry_z: 1.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_seasonal_dev_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: seasonal_dev
+      horizon_min: 15
+      lookback: 60
+      entry_z: 1.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_mom_15_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: mom_15
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_mom_60_60
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: mom_60
+      horizon_min: 60
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_leg_mom_diff_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: leg_mom_diff_15
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.1
+      entry_high: 0.9
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_eff_spread_15
+    module: strategies.factor_single.strategy
+    enabled: true
+    params:
+      factor: eff_spread
+      horizon_min: 15
+      lookback: 60
+      entry_z: 1.5
+      trade_mode: 0
+      min_hold_bars: 8
+      cooldown_bars: 10
+      max_eff_spread: 20
+      capital_per_layer: [500000]
+
+  - id: factor_oi_combo_15
+    module: strategies.factor_combo.strategy
+    enabled: true
+    params:
+      signal_factor: pct_rank
+      gate_factor: mid_dev
+      horizon_min: 15
+      lookback: 60
+      entry_low: 0.05
+      entry_high: 0.95
+      gate_low: 0.05
+      gate_high: 0.95
+      exit_mid: 0.5
+      trade_mode: 0
+      min_hold_bars: 15
+      cooldown_bars: 15
+      max_eff_spread: 10
+      use_conservative_fill: true
+      capital_per_layer: [500000]
