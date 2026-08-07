@@ -1,0 +1,33 @@
+# Local smoke：使用仓库内 data/local_sample，CI / 无 D:/data 环境可跑
+round_id: local_smoke
+mode: smoke
+
+data:
+  data_dir: data/local_sample/dom_sub/MarketData
+  cross_dir: data/local_sample/cross_product/MarketData
+  dom_table_dir: data/local_sample/dom_table
+  years: ["2020"]
+
+universe:
+  calendar_products: [A]
+  cross_pairs: [A&B]
+  max_spreads_per_product: 2
+
+labels:
+  horizons_min: [5, 15]
+
+factors:
+  lookback: 20
+  vol_short: 10
+  vol_long: 40
+
+filters:
+  require_trade: false
+  max_eff_spread_ticks: 50
+
+output:
+  dir: research/output
+
+selection:
+  min_abs_ic: 0.02
+  min_icir: 0.3

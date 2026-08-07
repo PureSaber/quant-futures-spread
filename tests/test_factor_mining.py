@@ -17,8 +17,12 @@ from research.universe.build_manifest import build_manifest
 
 
 def test_smoke_manifest():
-    cfg = load_config(ROOT / "research/config/factor_mining_smoke.yaml")
+    local_cfg = ROOT / "research/config/factor_mining_local_smoke.yaml"
+    cfg_path = local_cfg if local_cfg.is_file() else ROOT / "research/config/factor_mining_smoke.yaml"
+    cfg = load_config(cfg_path)
     m = build_manifest(cfg)
+    if m.empty and cfg_path.name == "factor_mining_smoke.yaml":
+        pytest.skip("D:/data 不可用，且无 local_sample 配置")
     assert len(m) >= 2
     assert set(m["pair_type"]).issubset({"calendar", "cross"})
 
