@@ -1,1 +1,2 @@
-"""backtest — 回测引擎（子包：engine / portfolio / data / io / panel）。"""
+"""Compatibility shim — re-exports ``core`` (legacy ``backtest.*`` imports / pickle)."""
+from core import *  # noqa: F403

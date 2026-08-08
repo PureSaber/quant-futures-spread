@@ -12,7 +12,11 @@ from __future__ import annotations
 
 import math
 import pandas as pd
-from src.metrics import calc_all_metrics, gross_pnl_yuan_from_daily, profit_loss_ratio
+from performance.report.report_lib.metrics import (
+    calc_all_metrics,
+    gross_pnl_yuan_from_daily,
+    profit_loss_ratio,
+)
 
 
 def build(

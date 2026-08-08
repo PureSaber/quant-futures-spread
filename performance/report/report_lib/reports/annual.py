@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from src import metrics as M
+from performance.report.report_lib import metrics as M
 
 
 # ── 内部辅助 ────────────────────────────────────────────────

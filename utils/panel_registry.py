@@ -27,19 +27,16 @@ def register_panel(run_id: str, panel: Any) -> None:
 
 
 def _ensure_pickle_compat() -> None:
-    """旧 panel pickle 可能引用 ``backtest.*`` 模块路径。"""
-    import sys
-    import types
+    """旧 panel pickle 可能引用 ``backtest.*`` 模块路径。
 
+    ``backtest`` is a thin re-export shim onto ``core`` (Wave 2); importing the
+    package registers the legacy module names for unpickling.
+    """
+    import sys
+
+    import backtest.panel.sector_panel  # noqa: F401
     from core.panel import sector_panel
 
-    if "backtest" not in sys.modules:
-        bt = types.ModuleType("backtest")
-        bt.panel = types.ModuleType("backtest.panel")
-        bt.panel.sector_panel = sector_panel
-        bt.sector_panel = sector_panel
-        sys.modules["backtest"] = bt
-        sys.modules["backtest.panel"] = bt.panel
     sys.modules.setdefault("backtest.sector_panel", sector_panel)
     sys.modules.setdefault("backtest.panel.sector_panel", sector_panel)
     sys.modules.setdefault("core.sector_panel", sector_panel)

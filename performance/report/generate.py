@@ -1,18 +1,13 @@
 """performance/report/generate.py —— 生成 performance_report_{run_id}.xlsx。"""
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pandas as pd
 
-_REPORT_ROOT = Path(__file__).parent
-if str(_REPORT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPORT_ROOT))
-
-from loader import load_config, prepare_frames  # noqa: E402
-from src.excel_formatter import write_excel  # noqa: E402
-from src.reports import annual, core_overview, monthly, weekly  # noqa: E402
+from performance.report.loader import load_config, prepare_frames
+from performance.report.report_lib.excel_formatter import write_excel
+from performance.report.report_lib.reports import annual, core_overview, monthly, weekly
 
 _SYMBOL_LABEL = "套利对"
 

@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from src import metrics as M
-from src.reports.monthly import _monthly_comm_fields
+from performance.report.report_lib import metrics as M
+from performance.report.report_lib.reports.monthly import _monthly_comm_fields
 
 
 # ── ISO 周标签 ───────────────────────────────────────────────

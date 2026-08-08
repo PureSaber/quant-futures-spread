@@ -40,7 +40,6 @@ exclude = [
     "output",
     "tools/_cache",
     "config/_generated",
-    "backtest",
     "tools",
     "strategy/strategies/boll_grid",
     "strategy/strategies/gaozong2",
