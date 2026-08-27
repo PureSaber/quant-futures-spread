@@ -24,7 +24,9 @@ python run_backtest.py --config config/backtest_example_dom_sub.yaml
 python run_backtest.py --config config/backtest_example_cross_product.yaml
 ```
 
-结果在 `output/<run_id>/`：`daily/` 净值、`trades/trades.csv`、calendar 模式还有 `rolls/roll_events.csv`。
+结果在 `output/<run_id>/`：`daily/`净值、`trades/trades.csv`、calendar模式还有
+`rolls/roll_events.csv`。同时写入`standard/`标准运行契约，包含收益、持仓、订单、成本、
+暴露、指标和SHA-256清单，可由`quant-lab validate --run-dir output/<run_id>`验证。
 
 ## 目录
 

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -13,6 +14,7 @@ from core.engine.signal_recorder import write_signals_csv
 from core.io.config_loader import BacktestConfig
 from core.io.output_format import write_portfolio_csv, write_spread_csv
 from core.io.output_format import write_summary_csv, write_trades_csv
+from core.io.standard_output import write_futures_standard_run
 from performance import summarize
 
 try:
@@ -186,5 +188,15 @@ def write_outputs(cfg: BacktestConfig, result: BacktestResult) -> str:
                 strategy=_strategy_name(cfg),
                 total_capital=float(cfg.capital) * max(n_active, 1),
             )
+
+        write_futures_standard_run(
+            Path(out_root),
+            cfg,
+            result,
+            port,
+            spread,
+            metrics=s,
+            strategy=_strategy_name(cfg),
+        )
 
     return out_root
