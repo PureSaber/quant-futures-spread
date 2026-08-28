@@ -1,0 +1,93 @@
+{
+  "schema_version": "fixture-cn-futures-v1",
+  "certification": "fixture-certified",
+  "applicability": "Only the repository data/local_sample labels and the 2020 synthetic fixture interval. This is not an exchange listing-history claim.",
+  "instrument_defaults": {
+    "asset_class": "future",
+    "product_type": "cn_commodity_future_fixture",
+    "venue": "DCE",
+    "settlement_currency": "CNY",
+    "price_tick": "1",
+    "price_scale": 0,
+    "quantity_step": "1",
+    "quantity_scale": 0,
+    "contract_multiplier": "10",
+    "multiplier_scale": 0,
+    "calendar_id": "fixture-cn-futures-night-v1",
+    "margin_mode": "cross",
+    "effective_from": "2020-01-01T00:00:00Z",
+    "effective_to": "2021-01-01T00:00:00Z",
+    "available_at": "2019-12-31T00:00:00Z",
+    "metadata": {
+      "initial_margin_rate": "0.07",
+      "maintenance_margin_rate": "0.05",
+      "fee_rate": "0.00002",
+      "close_today_fee_rate": "0.00004",
+      "open_close_model": "qexec-reduce-only-auto-fifo",
+      "close_today_rule": "same-trading-day-lot-routes-to-close_today_fee_rate",
+      "night_session_trading_day_rule": "evening-calendar-date-maps-to-next-fixture-trading-day",
+      "daily_settlement_rule": "fixture-daily-mark-boundary-metadata-only",
+      "roll_rule": "explicit-signal-close-old-before-open-successor",
+      "fixture_scope": "data/local_sample-only",
+      "historical_claim": "none"
+    }
+  },
+  "instruments": [
+    {
+      "instrument_id": "future:fixture-dce:A2003",
+      "native_symbol": "A2003",
+      "metadata": {"roll_successor": "future:fixture-dce:A2005"}
+    },
+    {
+      "instrument_id": "future:fixture-dce:B2003",
+      "native_symbol": "B2003",
+      "metadata": {"roll_successor": "future:fixture-dce:B2005"}
+    },
+    {
+      "instrument_id": "future:fixture-dce:A2005",
+      "native_symbol": "A2005",
+      "metadata": {"roll_successor": "future:fixture-dce:A2007"}
+    },
+    {
+      "instrument_id": "future:fixture-dce:B2005",
+      "native_symbol": "B2005",
+      "metadata": {"roll_successor": "future:fixture-dce:B2007"}
+    },
+    {
+      "instrument_id": "future:fixture-dce:A2007",
+      "native_symbol": "A2007",
+      "metadata": {"roll_successor": "fixture-terminal"}
+    },
+    {
+      "instrument_id": "future:fixture-dce:B2007",
+      "native_symbol": "B2007",
+      "metadata": {"roll_successor": "fixture-terminal"}
+    },
+    {
+      "instrument_id": "future:fixture-dce:A2103",
+      "native_symbol": "A2103",
+      "metadata": {"roll_successor": "future:fixture-dce:A2105"}
+    },
+    {
+      "instrument_id": "future:fixture-dce:A2105",
+      "native_symbol": "A2105",
+      "metadata": {"roll_successor": "fixture-terminal"}
+    }
+  ],
+  "symbol_mapping_defaults": {
+    "source": "qfs-local-sample-v1",
+    "effective_from": "2020-01-01T00:00:00Z",
+    "effective_to": "2021-01-01T00:00:00Z",
+    "available_at": "2019-12-31T00:00:00Z"
+  },
+  "symbol_mappings": [
+    {"provider_symbol": "A2003", "instrument_id": "future:fixture-dce:A2003"},
+    {"provider_symbol": "B2003", "instrument_id": "future:fixture-dce:B2003"},
+    {"provider_symbol": "A2005", "instrument_id": "future:fixture-dce:A2005"},
+    {"provider_symbol": "B2005", "instrument_id": "future:fixture-dce:B2005"},
+    {"provider_symbol": "A2007", "instrument_id": "future:fixture-dce:A2007"},
+    {"provider_symbol": "B2007", "instrument_id": "future:fixture-dce:B2007"},
+    {"provider_symbol": "A2103", "instrument_id": "future:fixture-dce:A2103"},
+    {"provider_symbol": "A2105", "instrument_id": "future:fixture-dce:A2105"}
+  ]
+}
