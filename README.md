@@ -13,7 +13,7 @@ python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\acti
 pip install -e ".[dev]"
 ```
 
-`pyproject.toml`冻结安装QDK`v0.5.0`、QExec`v0.2.0`、QLab`v0.3.0`；不要用浮动
+`pyproject.toml`冻结安装QDK`v0.6.0`、QExec`v0.3.0`、QLab`v0.3.0`；不要用浮动
 `main`或相邻工作树替代认证依赖。
 
 数据路径：设置环境变量 `QUANT_FUTURES_DATA_ROOT`，或参考 `config/data_paths.example.yaml`。

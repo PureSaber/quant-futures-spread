@@ -17,8 +17,8 @@ from quant_lab.contracts_v2 import ARTIFACT_SCHEMAS_V2, RunManifestV2
 from qfs_certified.reference import FixtureMaster
 
 INTERNAL_DEPENDENCIES = {
-    "quant-data-kit": "v0.5.0",
-    "quant-execution": "v0.2.0",
+    "quant-data-kit": "v0.6.0",
+    "quant-execution": "v0.3.0",
     "quant-lab": "v0.3.0",
 }
 
@@ -384,6 +384,7 @@ def write_certified_standard_v2(
         "event_count": artifacts.result.event_count,
         "order_count": artifacts.result.order_count,
         "fill_count": artifacts.result.fill_count,
+        "settlement_count": len(artifacts.settlements),
         "final_nav": str(final_snapshot.nav.to_decimal()),
         "order_event_sha256": artifacts.result.event_sha256,
         "fill_sha256": artifacts.result.fill_sha256,
@@ -403,7 +404,7 @@ def write_certified_standard_v2(
         random_seed=random_seed,
         dataset_snapshots=dataset_snapshots,
         instrument_master_version=instrument_master_version,
-        execution_model_version="quant-execution-v0.2.0:bar-matching",
+        execution_model_version="quant-execution-v0.3.0:bar-matching",
         base_currency=final_snapshot.base_currency,
         lineage=_lineage(),
         capabilities=[
@@ -415,7 +416,7 @@ def write_certified_standard_v2(
         ],
         tags={
             "asset_class": "cn_commodity_futures",
-            "accounting_source": "quant-execution-v0.2.0",
+            "accounting_source": "quant-execution-v0.3.0",
             "certification": "fixture-certified",
             "legacy_accounting": "excluded",
         },

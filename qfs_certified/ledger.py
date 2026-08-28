@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from quant_data_kit import MarketEvent
 from quant_execution import AccountSnapshot, ExactAccountLedger, LedgerEvent
 
@@ -9,8 +11,8 @@ from quant_execution import AccountSnapshot, ExactAccountLedger, LedgerEvent
 class SnapshotRecordingLedger(ExactAccountLedger):
     """ExactAccountLedger with reporting snapshots; accounting behavior is unchanged."""
 
-    def reset(self) -> None:
-        super().reset()
+    def reset(self, *, opened_at: datetime | None = None) -> None:
+        super().reset(opened_at=opened_at)
         self._reporting_snapshots: dict[object, AccountSnapshot] = {}
 
     def _record(self, event_time) -> AccountSnapshot:

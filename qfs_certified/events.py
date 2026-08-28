@@ -23,6 +23,8 @@ class EventFixture:
 
 
 def _base(record: dict, master: FixtureMaster) -> dict:
+    if record.get("sequence") is None:
+        raise ValueError(f"event {record.get('event_id', '<unknown>')} requires sequence")
     event_time = parse_utc(record["event_time"], "event_time")
     received_at = parse_utc(record.get("received_at", record["event_time"]), "received_at")
     available_at = parse_utc(
@@ -96,6 +98,19 @@ def load_event_fixture(path: str | Path, *, master: FixtureMaster) -> EventFixtu
     event_ids = [event.event_id for event in events]
     if len(event_ids) != len(set(event_ids)):
         raise ValueError("event fixture contains duplicate event_id values")
+    sequences = [event.sequence for event in events]
+    if any(sequence is None for sequence in sequences):
+        raise ValueError("event fixture requires a non-null sequence for every event")
+    if len(sequences) != len(set(sequences)):
+        raise ValueError("event fixture contains duplicate sequence values")
+    if sequences != sorted(sequences):
+        raise ValueError("event fixture contains out-of-order sequence values")
+    expected = list(range(1, len(events) + 1))
+    if sequences != expected:
+        raise ValueError(
+            "event fixture sequence must be contiguous from 1 without gaps "
+            f"(expected {expected[0]}..{expected[-1]})"
+        )
     _validate_night_trading_day(events)
     return EventFixture(
         schema_version=payload["schema_version"],
