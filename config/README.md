@@ -14,11 +14,18 @@ config/
 |------|------|
 | `backtest_example_dom_sub.yaml` | 团队示例：主力×次主力（`calendar_dom_sub`） |
 | `backtest_example_cross_product.yaml` | 团队示例：跨品种（`manual` + instances） |
+| `certified_local_sample_v1.yaml` | M4 fixture-certified：仅冻结QExec确定性回测链 |
 
 ```bash
 python run_backtest.py --config config/backtest_example_dom_sub.yaml
 python run_backtest.py --config config/backtest_example_cross_product.yaml
+qfs-certified-backtest --config config/certified_local_sample_v1.yaml --output-root output/certified
 ```
+
+`backtest_example_*.yaml`保留为legacy/research-only。认证配置只接受`mode: backtest`和
+`certified_profile: qexec-fixture-v1`，明确禁止live路径；其引用的PIT master和事件仅适用于
+仓内合成local sample，不代表真实合约上市历史。认证保证金由QExec ledger snapshot决定，
+standard/v2中的逐品种行仅作恒等可验证的报告分解。
 
 `strategy:` 可选值：`example_dom_sub` `example_cross_product`
 

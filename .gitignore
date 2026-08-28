@@ -45,3 +45,11 @@ tests/test_performance_report.py
 tools/_cache/
 config/_generated/
 *.tmp
+
+# M4本地验证产物
+build/
+.pytest_cache/
+.pytest-tmp/
+.codex-smoke-qfs/
+.coverage
+coverage.xml
