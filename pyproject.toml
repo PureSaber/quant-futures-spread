@@ -18,21 +18,38 @@ dependencies = [
     "openpyxl>=3.1",
     "sortedcontainers>=2.4",
     "pyarrow>=14.0",
-    "quant-lab @ git+https://github.com/PureSaber/quant-lab.git@v0.2.0",
+    "quant-data-kit @ git+https://github.com/PureSaber/quant-data-kit.git@v0.5.0",
+    "quant-execution @ git+https://github.com/PureSaber/quant-execution.git@v0.2.0",
+    "quant-lab @ git+https://github.com/PureSaber/quant-lab.git@v0.3.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.9.0"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.9.0"]
 
 [project.scripts]
 qfs-backtest = "run_backtest:main"
+qfs-certified-backtest = "qfs_certified.runner:main"
 
 [tool.setuptools]
 py-modules = ["run_backtest", "performance"]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "backtest*",
+    "core*",
+    "data_sources*",
+    "performance*",
+    "qfs_certified*",
+    "research*",
+    "strategy*",
+    "utils*",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "--strict-markers --basetemp=.pytest-tmp -p no:cacheprovider"
 
 [tool.ruff]
 line-length = 100
@@ -56,3 +73,12 @@ exclude = [
 [tool.ruff.lint]
 select = ["E", "F"]
 ignore = ["E501", "E402", "E731"]
+
+[tool.coverage.run]
+branch = true
+source = ["."]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

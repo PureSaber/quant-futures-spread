@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -27,5 +27,11 @@ jobs:
       - name: Ruff check
         run: ruff check .
 
+      - name: Ruff format check
+        run: >-
+          ruff format --check qfs_certified tests/test_certified_backtest.py
+          tests/test_coverage_factor_strategies.py
+          tests/test_coverage_panels_research_utils.py
+
       - name: Pytest
-        run: pytest -q
+        run: pytest --cov=. --cov-branch --cov-report=term-missing --cov-fail-under=80 -q
