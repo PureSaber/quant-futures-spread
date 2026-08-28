@@ -197,7 +197,10 @@ def test_gaozong2_symbol_switch_resets_state():
     try:
         from strategies.gaozong2.strategy import Strategy
     except ModuleNotFoundError:
-        pytest.skip("gaozong2 strategy not available in this checkout")
+        pytest.skip(
+            "LEGACY_SKIP owner=quant-futures-spread maintainers; "
+            "unblock when the legacy gaozong2 strategy is restored or this legacy test is retired"
+        )
     from core.engine.runner import _apply_symbol_switch
     from core.engine.context import BacktestStrategyContext
     from core.engine.reconcile_sim import ReconcileSimulator

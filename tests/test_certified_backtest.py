@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
@@ -29,6 +30,14 @@ CODE_VERSION = "70cbbbb90c6e8d6835f14c627e4dd44a1f6ae83d"
 def _write_json(path: Path, payload: dict) -> Path:
     path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     return path
+
+
+def test_release_version_and_internal_dependencies_are_frozen() -> None:
+    project = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert 'version = "0.3.0"' in project
+    assert "quant-data-kit.git@v0.6.0" in project
+    assert "quant-execution.git@v0.3.0" in project
+    assert "quant-lab.git@v0.3.0" in project
 
 
 def _config(tmp_path: Path, **changes) -> Path:
@@ -100,7 +109,16 @@ def test_market_fixture_covers_night_hold_close_and_roll() -> None:
     master = load_fixture_master(MASTER, as_of=AS_OF)
     fixture = load_event_fixture(EVENTS, master=master)
     assert fixture.certification == "fixture-certified"
-    assert len(fixture.events) == 21
+    assert len(fixture.events) == 23
+    assert [event.sequence for event in fixture.events] == list(range(1, 24))
+    settlements = [
+        event for event in fixture.events if getattr(event, "status", "") == "daily_settlement"
+    ]
+    assert [event.event_id for event in settlements] == [
+        "daily-settlement-old-a",
+        "daily-settlement-old-b",
+    ]
+    assert all(event.trading_day.isoformat() == "2020-01-03" for event in settlements)
     assert [event.event_id for event in fixture.events].index("signal-close-old") < [
         event.event_id for event in fixture.events
     ].index("roll-boundary-old-to-new")
@@ -140,6 +158,32 @@ def test_market_fixture_fails_closed_on_mutation(tmp_path: Path) -> None:
         with pytest.raises(ValueError, match=message):
             load_event_fixture(
                 _write_json(tmp_path / f"events-{index}.json", payload), master=master
+            )
+
+    for index, (mutator, message) in enumerate(
+        (
+            (
+                lambda payload: payload["events"][-1].__setitem__("sequence", 99),
+                "sequence must be contiguous",
+            ),
+            (
+                lambda payload: (
+                    payload["events"][5].__setitem__("sequence", 7),
+                    payload["events"][6].__setitem__("sequence", 6),
+                ),
+                "out-of-order sequence",
+            ),
+            (
+                lambda payload: payload["events"][5].__setitem__("sequence", 4),
+                "duplicate sequence",
+            ),
+        )
+    ):
+        payload = json.loads(EVENTS.read_text(encoding="utf-8"))
+        mutator(payload)
+        with pytest.raises(ValueError, match=message):
+            load_event_fixture(
+                _write_json(tmp_path / f"sequence-{index}.json", payload), master=master
             )
 
 
@@ -248,6 +292,24 @@ def test_qexec_golden_replay_is_deterministic_and_reconciled() -> None:
     assert len(hashes) == 1
     replay = runs[0]
     assert replay.result.order_count == replay.result.fill_count == 8
+    assert len(replay.artifacts.settlements) == 2
+    assert [settlement.amount.to_decimal() for settlement in replay.artifacts.settlements] == [
+        Decimal("20.00000000"),
+        Decimal("20.00000000"),
+    ]
+    assert [settlement.event_time.isoformat() for settlement in replay.artifacts.settlements] == [
+        "2020-01-03T00:59:00+00:00",
+        "2020-01-03T00:59:01+00:00",
+    ]
+    settlement_transactions = [
+        transaction
+        for transaction in replay.artifacts.ledger_transactions
+        if transaction.event_type.value == "settlement"
+    ]
+    assert len(settlement_transactions) == len(replay.artifacts.settlements) == 2
+    assert {transaction.reference_id for transaction in settlement_transactions} == {
+        settlement.settlement_id for settlement in replay.artifacts.settlements
+    }
     assert len(replay.strategy.audit_trail) == 8
     assert not replay.artifacts.risk_events
     assert not replay.strategy.sends_live_orders
@@ -321,10 +383,15 @@ def test_standard_v2_is_complete_readable_and_quantity_conserving(tmp_path: Path
     assert loaded == completed.manifest
     assert loaded.profile == "backtest-ledger"
     assert loaded.internal_dependencies == {
-        "quant-data-kit": "v0.5.0",
-        "quant-execution": "v0.2.0",
+        "quant-data-kit": "v0.6.0",
+        "quant-execution": "v0.3.0",
         "quant-lab": "v0.3.0",
     }
+    assert loaded.time_range == {
+        "start": "2020-01-02T13:00:10+00:00",
+        "end": "2020-01-03T01:07:10+00:00",
+    }
+    assert "1970" not in str(loaded.time_range)
     required = {record.name for record in loaded.artifacts if record.required}
     assert required == {
         "config",
@@ -345,10 +412,13 @@ def test_standard_v2_is_complete_readable_and_quantity_conserving(tmp_path: Path
     fills = pd.read_parquet(base / "fills.parquet")
     costs = pd.read_parquet(base / "costs.parquet")
     ledger = pd.read_parquet(base / "cash_ledger.parquet")
+    metrics = json.loads((base / "metrics.json").read_text(encoding="utf-8"))
     assert len(orders) == len(fills) == len(costs) == 8
     assert orders["filled_quantity_units"].sum() == fills["quantity_units"].sum()
     balances = ledger.groupby(["transaction_id", "currency"])["amount_units"].sum()
     assert (balances == 0).all()
+    assert (ledger[ledger["event_type"] == "settlement"].shape[0]) > 0
+    assert metrics["settlement_count"] == 2
     with pytest.raises(FileExistsError, match="immutable"):
         run_certified_backtest(CONFIG, tmp_path, code_version=CODE_VERSION)
 
