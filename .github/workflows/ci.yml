@@ -49,7 +49,7 @@ jobs:
           report = json.loads(Path("coverage.json").read_text(encoding="utf-8"))
           candidates = [
               (key, value) for key, value in report["files"].items()
-              if key.replace("\\", "/").endswith("/qfs_certified/standard_v2.py")
+              if key.replace("\\", "/").endswith("qfs_certified/standard_v2.py")
           ]
           if not candidates:
               raise SystemExit("standard/v2 producer is missing from coverage JSON")
