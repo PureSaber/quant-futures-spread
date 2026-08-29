@@ -1,5 +1,9 @@
 # 期货价差回测框架 (quant-futures-spread)
 
+本版本`0.3.1`完成M6策略层依赖治理。认证入口继续只支持确定性回测，不改变策略、撮合、
+账本或历史`standard/v1`语义；信号只能产生腿级订单意图，成交、费用、滑点、换月、保证金
+和NAV继续来自统一QExec执行与账本。
+
 Private research repo on GitHub: `PureSaber/quant-futures-spread`.
 
 本仓库同时保留原有价差研究回测和独立的M4认证回测。原有`core/`、`strategy/`路径属于
@@ -10,11 +14,27 @@ fixture-certified入口，且只支持确定性backtest，不含live broker、�
 
 ```bash
 python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+python -m pip install --no-deps --requirement requirements.lock
+python -m pip check
+python -m pip install --no-deps --no-build-isolation --editable .
+python -m pip check
 ```
 
-`pyproject.toml`冻结安装QDK`v0.6.0`、QExec`v0.3.0`、QLab`v0.3.0`；不要用浮动
-`main`或相邻工作树替代认证依赖。
+`pyproject.toml`和`requirements.lock`冻结安装已发布annotatedtag：QDK`v0.6.1`（peeledcommit
+`edf1351690dc60691cc6330390adcdbf8bc79c5f`）、QExec`v0.4.1`（`29eccc0e392968b5f7c31976a329605aacce369a`）
+和QLab`v0.3.1`（`27489d270e132adbec1bced93eb2ae84ad5e1a9b`）；不要用浮动分支、未发布commit
+或相邻工作树替代认证依赖。
+
+锁文件由Python3.10重建，覆盖runtime、dev和editable-build依赖。重建命令：
+
+```bash
+pip-compile --extra dev --build-deps-for editable --allow-unsafe --strip-extras \
+  --resolver backtracking --index-url https://pypi.org/simple \
+  --output-file requirements.lock pyproject.toml
+```
+
+CI在Python3.10、3.11、3.12中严格执行锁安装、两次`pip check`、no-build-isolationeditable安装、
+Ruff、完整测试和分支覆盖率门禁。回滚使用Git revert同时恢复治理文件和锁；旧tag不移动、不覆盖。
 
 数据路径：设置环境变量 `QUANT_FUTURES_DATA_ROOT`，或参考 `config/data_paths.example.yaml`。
 默认 `D:/data`；本机访问不到要先改路径。
