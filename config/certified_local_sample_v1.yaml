@@ -20,7 +20,7 @@ fixture:
   market_events: data/local_sample/certified_v1/market_events.json
 
 execution:
-  authority: quant-execution-v0.3.0
+  authority: quant-execution-v0.4.1
   engine: DeterministicRunEngine
   risk_gate: RuleBookRiskGate
   matching: BarMatchingModel
