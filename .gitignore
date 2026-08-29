@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv*/
 venv/
 
 # OS / IDE
@@ -53,3 +54,5 @@ build/
 .codex-smoke-qfs/
 .coverage
 coverage.xml
+coverage-*.json
+.pytest-tmp*/

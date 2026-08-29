@@ -2,21 +2,28 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
 import pytest
 import yaml
-from quant_data_kit import FixedPoint, StatusEvent
-from quant_execution import Side, StrategyContext
+from quant_data_kit import (
+    BarEvent,
+    FixedPoint,
+    MarkPriceEvent,
+    QuoteEvent,
+    StatusEvent,
+    TradeEvent,
+)
+from quant_execution import AccountSnapshot, Side, StrategyContext
 from quant_lab import load_and_validate_standard_run
 
 from qfs_certified.events import load_event_fixture
 from qfs_certified.reference import FixtureMaster, load_fixture_master, parse_utc
 from qfs_certified.runner import execute_certified_replay, run_certified_backtest
-from qfs_certified.standard_v2 import _reporting_frames
+from qfs_certified.standard_v2 import _event_price, _frame, _reporting_frames
 from qfs_certified.strategy import AuditedSpreadStrategy, SpreadSignal
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,10 +41,10 @@ def _write_json(path: Path, payload: dict) -> Path:
 
 def test_release_version_and_internal_dependencies_are_frozen() -> None:
     project = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    assert 'version = "0.3.0"' in project
-    assert "quant-data-kit.git@v0.6.0" in project
-    assert "quant-execution.git@v0.3.0" in project
-    assert "quant-lab.git@v0.3.0" in project
+    assert 'version = "0.3.1"' in project
+    assert "quant-data-kit.git@v0.6.1" in project
+    assert "quant-execution.git@v0.4.1" in project
+    assert "quant-lab.git@v0.3.1" in project
 
 
 def _config(tmp_path: Path, **changes) -> Path:
@@ -383,9 +390,9 @@ def test_standard_v2_is_complete_readable_and_quantity_conserving(tmp_path: Path
     assert loaded == completed.manifest
     assert loaded.profile == "backtest-ledger"
     assert loaded.internal_dependencies == {
-        "quant-data-kit": "v0.6.0",
-        "quant-execution": "v0.3.0",
-        "quant-lab": "v0.3.0",
+        "quant-data-kit": "v0.6.1",
+        "quant-execution": "v0.4.1",
+        "quant-lab": "v0.3.1",
     }
     assert loaded.time_range == {
         "start": "2020-01-02T13:00:10+00:00",
@@ -458,6 +465,79 @@ def test_margin_decomposition_must_equal_every_qexec_snapshot() -> None:
                 for row in rows.itertuples()
             )
             == maintenance
+        )
+
+
+def test_standard_v2_adapter_covers_event_and_validation_boundaries() -> None:
+    now = datetime(2020, 1, 2, 13, tzinfo=timezone.utc)
+    common = {
+        "event_id": "boundary",
+        "instrument_id": "future:fixture-dce:A2003",
+        "event_time": now,
+        "received_at": now,
+        "available_at": now,
+        "source": "fixture",
+        "trading_day": now.date(),
+        "session_id": "fixture",
+        "sequence": 1,
+    }
+    price = FixedPoint(100, 0)
+    bar = BarEvent(
+        **common,
+        bar_start=now - timedelta(minutes=1),
+        bar_end=now,
+        open_price=price,
+        high_price=price,
+        low_price=price,
+        close_price=price,
+        volume=FixedPoint(1, 0),
+        is_complete=True,
+    )
+    trade = TradeEvent(**common, price=price, quantity=FixedPoint(1, 0))
+    mark = MarkPriceEvent(**common, price=price)
+    quote = QuoteEvent(
+        **common,
+        bid_price=price,
+        bid_quantity=FixedPoint(1, 0),
+        ask_price=FixedPoint(102, 0),
+        ask_quantity=FixedPoint(1, 0),
+    )
+    assert _frame("returns", []).empty
+    assert _event_price(bar) == price
+    assert _event_price(trade) == price
+    assert _event_price(mark) == price
+    assert _event_price(quote) == FixedPoint(101, 0)
+    assert _event_price(StatusEvent(**common, status="open")) is None
+
+    replay = execute_certified_replay(CONFIG)
+    empty_artifacts = replace(replay.artifacts, market_events=(), fees=())
+    first = AccountSnapshot(
+        account_id="account",
+        event_time=now,
+        base_currency="CNY",
+        cash_balances={"CNY": FixedPoint(1, 0)},
+        nav=FixedPoint(0, 0),
+        initial_margin=FixedPoint(0, 8),
+        maintenance_margin=FixedPoint(0, 8),
+    )
+    second = replace(first, event_time=now.replace(minute=1), nav=FixedPoint(1, 0))
+    with pytest.raises(ValueError, match="base-currency-only"):
+        _reporting_frames(
+            artifacts=empty_artifacts,
+            snapshots=[
+                replace(first, cash_balances={"CNY": FixedPoint(1, 0), "USD": FixedPoint(1, 0)})
+            ],
+            master=replay.master,
+            strategy_id="boundary",
+            money_scale=8,
+        )
+    with pytest.raises(ValueError, match="zero NAV"):
+        _reporting_frames(
+            artifacts=empty_artifacts,
+            snapshots=[first, second],
+            master=replay.master,
+            strategy_id="boundary",
+            money_scale=8,
         )
 
     first_id = next(iter(replay.master.instruments))
