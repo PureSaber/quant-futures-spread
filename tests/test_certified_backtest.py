@@ -41,9 +41,9 @@ def _write_json(path: Path, payload: dict) -> Path:
 
 def test_release_version_and_internal_dependencies_are_frozen() -> None:
     project = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    assert 'version = "0.3.1"' in project
-    assert "quant-data-kit.git@v0.6.1" in project
-    assert "quant-execution.git@v0.4.1" in project
+    assert 'version = "0.3.2"' in project
+    assert "quant-data-kit.git@v0.8.1" in project
+    assert "quant-execution.git@v0.5.1" in project
     assert "quant-lab.git@v0.3.1" in project
 
 
@@ -390,8 +390,8 @@ def test_standard_v2_is_complete_readable_and_quantity_conserving(tmp_path: Path
     assert loaded == completed.manifest
     assert loaded.profile == "backtest-ledger"
     assert loaded.internal_dependencies == {
-        "quant-data-kit": "v0.6.1",
-        "quant-execution": "v0.4.1",
+        "quant-data-kit": "v0.8.1",
+        "quant-execution": "v0.5.1",
         "quant-lab": "v0.3.1",
     }
     assert loaded.time_range == {

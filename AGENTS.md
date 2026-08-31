@@ -20,7 +20,7 @@ python -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-fail-under
 - `core/`、`strategy/`中的现有撮合与会计必须保留为legacy/research-only，不得用于生成认证事实。
 - `data/local_sample/certified_v1/`只描述仓内合成样例的PIT fixture，不声明真实上市历史或真实交易所参数。
 - standard/v2保证金文件只能分解QExec snapshot；逐品种之和必须对每个snapshot精确等于QExec initial/maintenance aggregate，否则fail closed。禁止维护第二套保证金状态。
-- 内部依赖固定为QDK`v0.6.0`、QExec`v0.3.0`、QLab`v0.3.0`，认证验证不得改用浮动分支或相邻工作树。
+- 内部依赖固定为QDK`v0.8.1`、QExec`v0.5.1`、QLab`v0.3.1`，认证验证不得改用浮动分支或相邻工作树。
 
 ## Data paths
 
