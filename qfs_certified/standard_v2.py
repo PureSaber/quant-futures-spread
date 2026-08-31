@@ -17,8 +17,8 @@ from quant_lab.contracts_v2 import ARTIFACT_SCHEMAS_V2, RunManifestV2
 from qfs_certified.reference import FixtureMaster
 
 INTERNAL_DEPENDENCIES = {
-    "quant-data-kit": "v0.6.1",
-    "quant-execution": "v0.4.1",
+    "quant-data-kit": "v0.8.1",
+    "quant-execution": "v0.5.1",
     "quant-lab": "v0.3.1",
 }
 
@@ -404,7 +404,7 @@ def write_certified_standard_v2(
         random_seed=random_seed,
         dataset_snapshots=dataset_snapshots,
         instrument_master_version=instrument_master_version,
-        execution_model_version="quant-execution-v0.4.1:bar-matching",
+        execution_model_version="quant-execution-v0.5.1:bar-matching",
         base_currency=final_snapshot.base_currency,
         lineage=_lineage(),
         capabilities=[
@@ -416,7 +416,7 @@ def write_certified_standard_v2(
         ],
         tags={
             "asset_class": "cn_commodity_futures",
-            "accounting_source": "quant-execution-v0.4.1",
+            "accounting_source": "quant-execution-v0.5.1",
             "certification": "fixture-certified",
             "legacy_accounting": "excluded",
         },
