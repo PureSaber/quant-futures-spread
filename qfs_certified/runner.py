@@ -31,7 +31,7 @@ from qfs_certified.strategy import AuditedSpreadStrategy, SpreadSignal
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CERTIFIED_PROFILE = "qexec-fixture-v1"
 CERTIFIED_EXECUTION = {
-    "authority": "quant-execution-v0.4.1",
+    "authority": "quant-execution-v0.5.1",
     "engine": "DeterministicRunEngine",
     "risk_gate": "RuleBookRiskGate",
     "matching": "BarMatchingModel",
