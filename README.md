@@ -1,6 +1,6 @@
 # 期货价差回测框架 (quant-futures-spread)
 
-本版本`0.3.1`完成M6策略层依赖治理。认证入口继续只支持确定性回测，不改变策略、撮合、
+本版本`0.3.2`完成M8运行时发布列车升级。认证入口继续只支持确定性回测，不改变策略、撮合、
 账本或历史`standard/v1`语义；信号只能产生腿级订单意图，成交、费用、滑点、换月、保证金
 和NAV继续来自统一QExec执行与账本。
 
@@ -20,8 +20,8 @@ python -m pip install --no-deps --no-build-isolation --editable .
 python -m pip check
 ```
 
-`pyproject.toml`和`requirements.lock`冻结安装已发布annotatedtag：QDK`v0.6.1`（peeledcommit
-`edf1351690dc60691cc6330390adcdbf8bc79c5f`）、QExec`v0.4.1`（`29eccc0e392968b5f7c31976a329605aacce369a`）
+`pyproject.toml`和`requirements.lock`冻结安装已发布annotatedtag：QDK`v0.8.1`（peeledcommit
+`8f258f11be8e4d8edddcd41b79b817bd6c925970`）、QExec`v0.5.1`（`15e4e5c9dbaf2fe9b438732b2e94db295d5ea58c`）
 和QLab`v0.3.1`（`27489d270e132adbec1bced93eb2ae84ad5e1a9b`）；不要用浮动分支、未发布commit
 或相邻工作树替代认证依赖。
 
