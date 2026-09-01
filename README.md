@@ -4,7 +4,7 @@
 账本或历史`standard/v1`语义；信号只能产生腿级订单意图，成交、费用、滑点、换月、保证金
 和NAV继续来自统一QExec执行与账本。
 
-Private research repo on GitHub: `PureSaber/quant-futures-spread`.
+Public research repository on GitHub: [`PureSaber/quant-futures-spread`](https://github.com/PureSaber/quant-futures-spread). Public visibility does not expand the certification scope: the repository remains fixture-certified, backtest-only, and contains no live broker, credential, or real-order path.
 
 本仓库同时保留原有价差研究回测和独立的M4认证回测。原有`core/`、`strategy/`路径属于
 legacy/research-only，不是认证成交、资金、持仓或NAV的事实来源；`qfs_certified/`才是

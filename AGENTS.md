@@ -1,6 +1,6 @@
 # quant-futures-spread
 
-Private futures spread research engine (local path: `future_spread_analysis-team-framework`).
+Public futures spread research engine. The certified path is fixture-only and backtest-only; public visibility does not authorize live broker integration, credentials, or real orders.
 
 ## Commands
 
@@ -29,5 +29,5 @@ Default data root: `D:/data`.
 
 ## Related
 
-- [quant-report-hub](../quant-report-hub) spread adapter reads `output/`
-- [quant-lab](../quant-lab) indexes runs from `output/`
+- [quant-report-hub](https://github.com/PureSaber/quant-report-hub) spread adapter reads `output/`
+- [quant-lab](https://github.com/PureSaber/quant-lab) indexes runs from `output/`
