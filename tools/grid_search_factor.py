@@ -27,7 +27,7 @@ STRATEGIES = [
 
 def _run_one(py: Path, cfg_path: Path) -> dict | None:
     r = subprocess.run(
-        [str(py), str(ROOT / "run_backtest.py"), "--config", str(cfg_path.relative_to(ROOT)), "--config-dir", "config"],
+        [str(py), str(ROOT / "run_backtest.py"), "--research-only", "--config", str(cfg_path.relative_to(ROOT)), "--config-dir", "config"],
         cwd=str(ROOT),
     )
     if r.returncode != 0:

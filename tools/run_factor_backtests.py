@@ -132,6 +132,7 @@ def main() -> None:
                     r = subprocess.run(
                         [
                             str(py), str(ROOT / "run_backtest.py"),
+                            "--research-only",
                             "--config", str(cfg_path.relative_to(ROOT)),
                             "--config-dir", "config",
                         ],

@@ -43,10 +43,10 @@ Ruff、完整测试和分支覆盖率门禁。回滚使用Git revert同时恢复
 
 ```bash
 # 主力 × 次主力（按主力表换月）
-python run_backtest.py --config config/backtest_example_dom_sub.yaml
+python run_backtest.py --research-only --config config/backtest_example_dom_sub.yaml
 
 # 跨品种（手填 symbol）
-python run_backtest.py --config config/backtest_example_cross_product.yaml
+python run_backtest.py --research-only --config config/backtest_example_cross_product.yaml
 ```
 
 以上两个命令走保留的legacy/research-only会计路径。M4认证样例使用：

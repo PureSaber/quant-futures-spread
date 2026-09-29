@@ -1,7 +1,7 @@
 """
 run_backtest.py  ——  统一回测入口（FuturesSpread 契约）
 
-    python run_backtest.py --config config/backtest_example_dom_sub.yaml
+    python run_backtest.py --research-only --config config/backtest_example_dom_sub.yaml
 """
 from __future__ import annotations
 
@@ -18,11 +18,21 @@ from performance import summarize
 def main() -> None:
     ap = argparse.ArgumentParser(description="FuturesSpread 契约回测")
     ap.add_argument("--config", required=True, help="config/backtest_*.yaml")
+    ap.add_argument(
+        "--research-only",
+        action="store_true",
+        help="Run the legacy accounting path. Results are not rankable.",
+    )
     ap.add_argument("--config-dir", default=None,
                     help="strategies.yaml 所在目录，默认同 --config 文件目录（通常为 config/）")
     ap.add_argument("--jobs", type=int, default=None,
                     help="并行进程数（默认取 yaml 的 jobs，否则 1=串行）")
     args = ap.parse_args()
+    if not args.research_only:
+        ap.error(
+            "qfs-backtest writes the legacy ledger. Pass --research-only to keep that path, "
+            "or use qfs-certified-backtest for the certified ledger."
+        )
 
     import logging
     from utils.strategy_bootstrap import bootstrap_strategy_path
