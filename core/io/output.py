@@ -118,6 +118,13 @@ def write_outputs(cfg: BacktestConfig, result: BacktestResult) -> str:
     os.makedirs(port_dir, exist_ok=True)
     os.makedirs(sym_dir, exist_ok=True)
     os.makedirs(perf_dir, exist_ok=True)
+    research_only = os.path.join(out_root, "research_only.json")
+    if not os.path.isfile(research_only):
+        with open(research_only, "w", encoding="utf-8") as handle:
+            handle.write(
+                '{"accounting":"legacy","rankable":false,'
+                '"certified_command":"qfs-certified-backtest"}\n'
+            )
 
     # 清理旧版 flat daily/*.csv
     for stale in (

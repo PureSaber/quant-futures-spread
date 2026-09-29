@@ -125,9 +125,15 @@ def write_futures_standard_run(
             "costs": costs,
             "exposures": exposures,
         },
-        metrics=metrics,
+        metrics={**metrics, "accounting": "legacy", "rankable": False},
         config=asdict(cfg),
         code_version=_code_version(Path(__file__).resolve().parents[2]),
         dataset_snapshots={},
-        tags={"asset_class": "cn_commodity_futures", "research_type": "spread"},
+        tags={
+            "asset_class": "cn_commodity_futures",
+            "research_type": "spread",
+            "research_only": "true",
+            "rankable": "false",
+            "accounting": "legacy",
+        },
     )

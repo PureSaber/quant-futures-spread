@@ -6,7 +6,7 @@ Public futures spread research engine. The certified path is fixture-only and ba
 
 ```bash
 pip install -e ".[dev]"
-python run_backtest.py --config config/backtest_example_dom_sub.yaml
+python run_backtest.py --research-only --config config/backtest_example_dom_sub.yaml
 python -m pytest tests/ -q
 ruff check .
 ruff format --check qfs_certified tests/test_certified_backtest.py tests/test_coverage_factor_strategies.py tests/test_coverage_panels_research_utils.py
