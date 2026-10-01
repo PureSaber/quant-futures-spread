@@ -91,6 +91,10 @@ class AuditedSpreadStrategy:
     def audit_trail(self) -> tuple[LegIntentAudit, ...]:
         return tuple(self._audit)
 
+    @property
+    def signal_ids(self) -> tuple[str, ...]:
+        return tuple(signal.signal_id for signal in self._signals.values())
+
     @staticmethod
     def _directions(action: str) -> tuple[tuple[Side, bool], tuple[Side, bool]]:
         directions = {

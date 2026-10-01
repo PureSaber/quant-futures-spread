@@ -31,8 +31,19 @@ def _standard_returns(portfolio: pd.DataFrame, cfg: BacktestConfig) -> pd.DataFr
     result["net_return"] = result["daily_pnl_pct"].astype(float)
     result["gross_return"] = result["net_return"] + cost_return
     result["nav"] = (1 + result["net_return"]).cumprod()
+    result["return_capital"] = active_capital.astype(float)
     result["benchmark_return"] = np.nan
-    return result[["date", "strategy", "gross_return", "net_return", "nav", "benchmark_return"]]
+    return result[
+        [
+            "date",
+            "strategy",
+            "gross_return",
+            "net_return",
+            "nav",
+            "benchmark_return",
+            "return_capital",
+        ]
+    ]
 
 
 def _standard_positions_and_exposures(
@@ -135,5 +146,6 @@ def write_futures_standard_run(
             "research_only": "true",
             "rankable": "false",
             "accounting": "legacy",
+            "cost_unit": "currency",
         },
     )
