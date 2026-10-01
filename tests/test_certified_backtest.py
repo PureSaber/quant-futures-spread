@@ -342,46 +342,135 @@ def test_qexec_golden_replay_is_deterministic_and_reconciled() -> None:
             )
 
 
-def test_margin_and_reduce_only_gates_reject_without_mutation(tmp_path: Path) -> None:
-    low_cash = execute_certified_replay(
-        _config(
-            tmp_path,
-            initial_cash="1000",
-            signals=[
-                {
-                    "signal_id": "open",
-                    "trigger_event_id": "signal-open-old",
-                    "action": "open_long",
-                    "leg_a": "A2003",
-                    "leg_b": "B2003",
-                    "quantity": "1",
-                }
-            ],
+def test_margin_and_reduce_only_gates_fail_the_spread_closed(tmp_path: Path) -> None:
+    with pytest.raises(
+        ValueError,
+        match="spread pair execution incomplete.*INSUFFICIENT_MARGIN",
+    ):
+        execute_certified_replay(
+            _config(
+                tmp_path,
+                initial_cash="1000",
+                signals=[
+                    {
+                        "signal_id": "open",
+                        "trigger_event_id": "signal-open-old",
+                        "action": "open_long",
+                        "leg_a": "A2003",
+                        "leg_b": "B2003",
+                        "quantity": "1",
+                    }
+                ],
+            )
         )
-    )
-    assert low_cash.result.order_count == 2
-    assert low_cash.result.fill_count == 0
-    assert all("INSUFFICIENT_MARGIN" in event for event in low_cash.artifacts.risk_events)
-    assert not low_cash.ledger.snapshot().positions
 
-    close_only = execute_certified_replay(
-        _config(
-            tmp_path,
-            signals=[
-                {
-                    "signal_id": "close",
-                    "trigger_event_id": "signal-close-old",
-                    "action": "close_long",
-                    "leg_a": "A2003",
-                    "leg_b": "B2003",
-                    "quantity": "1",
-                }
-            ],
+    with pytest.raises(
+        ValueError,
+        match="spread pair execution incomplete.*REDUCE_ONLY_VIOLATION",
+    ):
+        execute_certified_replay(
+            _config(
+                tmp_path,
+                signals=[
+                    {
+                        "signal_id": "close",
+                        "trigger_event_id": "signal-close-old",
+                        "action": "close_long",
+                        "leg_a": "A2003",
+                        "leg_b": "B2003",
+                        "quantity": "1",
+                    }
+                ],
+            )
         )
+
+
+def test_one_leg_margin_rejection_fails_closed(tmp_path: Path) -> None:
+    output_root = tmp_path / "failed-certification"
+    with pytest.raises(
+        ValueError,
+        match=r"signal_id=open.*leg-a=filled:1/1.*leg-b=rejected:0/1.*INSUFFICIENT",
+    ):
+        run_certified_backtest(
+            _config(
+                tmp_path,
+                initial_cash="3000",
+                signals=[
+                    {
+                        "signal_id": "open",
+                        "trigger_event_id": "signal-open-old",
+                        "action": "open_long",
+                        "leg_a": "A2003",
+                        "leg_b": "B2003",
+                        "quantity": "1",
+                    }
+                ],
+            ),
+            output_root,
+            code_version=CODE_VERSION,
+        )
+    assert not output_root.exists()
+
+
+def test_missing_signal_trigger_fails_closed_before_certification(tmp_path: Path) -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"spread signal execution missing.*missing-trigger.*order_count=0",
+    ):
+        execute_certified_replay(
+            _config(
+                tmp_path,
+                signals=[
+                    {
+                        "signal_id": "missing-trigger",
+                        "trigger_event_id": "event-not-in-fixture",
+                        "action": "open_long",
+                        "leg_a": "A2003",
+                        "leg_b": "B2003",
+                        "quantity": "1",
+                    }
+                ],
+            )
+        )
+
+
+def test_one_leg_liquidity_failure_fails_closed(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    master = load_fixture_master(MASTER, as_of=AS_OF)
+    fixture = load_event_fixture(EVENTS, master=master)
+    illiquid = replace(
+        fixture,
+        events=tuple(
+            replace(event, volume=FixedPoint(0, 0))
+            if isinstance(event, BarEvent)
+            and event.instrument_id == "future:fixture-dce:B2003"
+            and event.sequence > 5
+            else event
+            for event in fixture.events
+        ),
     )
-    assert close_only.result.fill_count == 0
-    assert all("REDUCE_ONLY_VIOLATION" in event for event in close_only.artifacts.risk_events)
-    assert not close_only.ledger.snapshot().positions
+    monkeypatch.setattr("qfs_certified.runner.load_event_fixture", lambda *args, **kwargs: illiquid)
+    with pytest.raises(
+        ValueError,
+        match=r"signal_id=open.*leg-a=filled:1/1.*leg-b=accepted:0/1",
+    ):
+        execute_certified_replay(
+            _config(
+                tmp_path,
+                signals=[
+                    {
+                        "signal_id": "open",
+                        "trigger_event_id": "signal-open-old",
+                        "action": "open_long",
+                        "leg_a": "A2003",
+                        "leg_b": "B2003",
+                        "quantity": "1",
+                    }
+                ],
+            )
+        )
 
 
 def test_standard_v2_is_complete_readable_and_quantity_conserving(tmp_path: Path) -> None:

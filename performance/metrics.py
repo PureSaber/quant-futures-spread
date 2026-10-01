@@ -28,8 +28,9 @@ def summarize(daily: pd.Series, capital: float = 1_000_000.0) -> dict:
     std = float(r.std()) if n > 1 else 0.0
     sharpe = (float(r.mean()) / std * np.sqrt(TRADING_DAYS)) if std > 0 else 0.0
     # 加性曲线回撤（绝对收益率口径）
-    peak = cum.cummax()
-    dd = cum - peak
+    curve = pd.concat([pd.Series([0.0]), cum.reset_index(drop=True)], ignore_index=True)
+    peak = curve.cummax()
+    dd = curve - peak
     max_dd = float(dd.min()) if n else 0.0
     if max_dd < 0:
         calmar = round(ann_ret / abs(max_dd), 4)

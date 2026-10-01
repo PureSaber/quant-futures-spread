@@ -41,6 +41,11 @@ def test_additive_drawdown_and_total():
        "max_drawdown 对齐加性曲线")
 
 
+def test_first_period_loss_draws_down_from_initial_nav():
+    s = summarize(pd.Series([-0.1, 0.05]))
+    ok(s["max_drawdown"] == -0.1, "首期亏损必须从初始NAV峰值0计入最大回撤")
+
+
 def test_calmar_no_drawdown():
     r = pd.Series([0.01, 0.02, 0.01])
     s = summarize(r)

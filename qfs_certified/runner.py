@@ -16,6 +16,7 @@ from quant_execution import (
     BarMatchingModel,
     DeterministicBroker,
     DeterministicRunEngine,
+    OrderStatus,
     RuleBookRiskGate,
     RunArtifacts,
     RunResult,
@@ -119,6 +120,64 @@ class CertifiedRun:
     run_dir: Path
 
 
+def _assert_complete_spread_executions(
+    strategy: AuditedSpreadStrategy,
+    artifacts: RunArtifacts,
+) -> None:
+    orders_by_key = {order.intent.idempotency_key: order for order in artifacts.orders}
+    if len(orders_by_key) != len(artifacts.orders):
+        raise ValueError("spread replay produced duplicate order idempotency keys")
+    latest_reasons = {
+        event.order_id: event.reason for event in artifacts.order_events if event.reason
+    }
+    audits_by_signal: dict[str, list] = {}
+    for audit in strategy.audit_trail:
+        audits_by_signal.setdefault(audit.signal_id, []).append(audit)
+    missing_signals = set(strategy.signal_ids) - set(audits_by_signal)
+    if missing_signals:
+        raise ValueError(
+            "spread signal execution missing; "
+            f"signal_ids={sorted(missing_signals)}; order_count={len(artifacts.orders)}"
+        )
+    audited_keys = {
+        audit.idempotency_key for audits in audits_by_signal.values() for audit in audits
+    }
+    unexpected_keys = set(orders_by_key) - audited_keys
+    if unexpected_keys:
+        raise ValueError(
+            f"spread replay produced orders without signal audit: {sorted(unexpected_keys)}"
+        )
+    for signal_id, audits in audits_by_signal.items():
+        roles = {audit.leg_role for audit in audits}
+        if len(audits) != 2 or roles != {"leg-a", "leg-b"}:
+            raise ValueError(
+                f"spread signal audit is incomplete; signal_id={signal_id}; roles={sorted(roles)}"
+            )
+        outcomes: list[str] = []
+        complete = True
+        for audit in sorted(audits, key=lambda item: item.leg_role):
+            order = orders_by_key.get(audit.idempotency_key)
+            if order is None:
+                complete = False
+                outcomes.append(f"{audit.leg_role}=missing")
+                continue
+            leg_complete = (
+                order.status is OrderStatus.FILLED and order.filled_quantity == audit.quantity
+            )
+            complete = complete and leg_complete
+            reason = latest_reasons.get(order.order_id, "")
+            detail = (
+                f"{audit.leg_role}={order.status.value}:"
+                f"{order.filled_quantity.to_decimal()}/{audit.quantity.to_decimal()}"
+            )
+            outcomes.append(f"{detail}:{reason}" if reason else detail)
+        if not complete:
+            raise ValueError(
+                "spread pair execution incomplete; "
+                f"signal_id={signal_id}; action={audits[0].action}; " + "; ".join(outcomes)
+            )
+
+
 def execute_certified_replay(config_path: str | Path) -> CertifiedReplay:
     config, resolved_config = _load_config(config_path)
     fixture = config.get("fixture") or {}
@@ -176,6 +235,7 @@ def execute_certified_replay(config_path: str | Path) -> CertifiedReplay:
     result = engine.replay(event_fixture.events, int(config["random_seed"]))
     if engine.artifacts is None:
         raise RuntimeError("QExec replay completed without RunArtifacts")
+    _assert_complete_spread_executions(strategy, engine.artifacts)
     return CertifiedReplay(
         result=result,
         artifacts=engine.artifacts,
