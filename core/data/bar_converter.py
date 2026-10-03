@@ -1,6 +1,7 @@
 """core/data/bar_converter.py — CSV spread → BarData。"""
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from core.types import BarData
@@ -8,10 +9,40 @@ from core.types import BarData
 
 def _col(df: pd.DataFrame, name: str, fallback: str | None = None) -> pd.Series:
     if name in df.columns:
-        return pd.to_numeric(df[name], errors="coerce")
-    if fallback and fallback in df.columns:
-        return pd.to_numeric(df[fallback], errors="coerce")
-    raise KeyError(f"CSV 缺少列 {name!r}" + (f" 或 {fallback!r}" if fallback else ""))
+        source = name
+    elif fallback and fallback in df.columns:
+        source = fallback
+    else:
+        raise KeyError(f"CSV 缺少列 {name!r}" + (f" 或 {fallback!r}" if fallback else ""))
+    try:
+        values = pd.to_numeric(df[source], errors="raise")
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"CSV 列 {source!r} 必须为有限数值") from exc
+    if values.isna().any() or not np.isfinite(values).all():
+        raise ValueError(f"CSV 列 {source!r} 必须为有限数值")
+    return values
+
+
+def _time_column(df: pd.DataFrame, name: str) -> pd.Series:
+    try:
+        values = pd.to_datetime(df[name], errors="raise")
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"CSV 列 {name!r} 必须为有效时间") from exc
+    if values.isna().any():
+        raise ValueError(f"CSV 列 {name!r} 不允许缺失时间")
+    return values
+
+
+def _trade_flag(value: object) -> bool:
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1"}:
+            return True
+        if normalized in {"false", "0"}:
+            return False
+    elif not pd.isna(value) and value in (True, False):
+        return bool(value)
+    raise ValueError("CSV 列 'trade' 必须为布尔值或0/1")
 
 
 def df_to_bars(
@@ -22,36 +53,37 @@ def df_to_bars(
         return []
     out = df.copy()
     if "datetime" in out.columns:
-        out["_dt"] = pd.to_datetime(out["datetime"])
+        out["_dt"] = _time_column(out, "datetime")
     elif "tradingday" in out.columns:
-        out["_dt"] = pd.to_datetime(out["tradingday"])
+        out["_dt"] = _time_column(out, "tradingday")
     else:
         raise ValueError("CSV 缺少 datetime / tradingday 列")
+    if out["_dt"].duplicated().any() or not out["_dt"].is_monotonic_increasing:
+        raise ValueError("CSV datetime / tradingday 时间必须严格递增且不重复")
 
     close_s = _col(out, "close")
     open_s = _col(out, "open", "close") if "open" in out.columns else close_s
     high_s = _col(out, "high", "close") if "high" in out.columns else close_s
     low_s = _col(out, "low", "close") if "low" in out.columns else close_s
-    vol_s = pd.to_numeric(out["volume"], errors="coerce").fillna(0) if "volume" in out.columns \
+    vol_s = _col(out, "volume") if "volume" in out.columns \
         else pd.Series(0.0, index=out.index)
     if "oi_x" in out.columns:
-        oi_s = pd.to_numeric(out["oi_x"], errors="coerce").fillna(0)
+        oi_s = _col(out, "oi_x")
     elif "oi" in out.columns:
-        oi_s = pd.to_numeric(out["oi"], errors="coerce").fillna(0)
+        oi_s = _col(out, "oi")
     elif "oi_y" in out.columns:
-        oi_s = pd.to_numeric(out["oi_y"], errors="coerce").fillna(0)
+        oi_s = _col(out, "oi_y")
     else:
         oi_s = pd.Series(0.0, index=out.index)
     if "tradingday" in out.columns:
-        tday_s = pd.to_datetime(out["tradingday"]).dt.strftime("%Y-%m-%d")
+        tday_s = _time_column(out, "tradingday").dt.strftime("%Y-%m-%d")
     else:
         tday_s = out["_dt"].dt.strftime("%Y-%m-%d")
-    tradable_s = out["trade"].astype(bool) if "trade" in out.columns else pd.Series(True, index=out.index)
+    tradable_s = out["trade"].map(_trade_flag) if "trade" in out.columns else pd.Series(True, index=out.index)
 
     def _opt_col(df: pd.DataFrame, name: str, fallback: pd.Series) -> pd.Series:
         if name in df.columns:
-            s = pd.to_numeric(df[name], errors="coerce")
-            return s.fillna(fallback)
+            return _col(df, name)
         return fallback
 
     bid_high_s = _opt_col(out, "bidPrice_high", high_s)
