@@ -134,8 +134,7 @@ def _apply_symbol_switch(
         strat.on_symbol_switch(old_sym, new_sym)
     except Exception:  # noqa: BLE001
         logger.exception(f"on_symbol_switch 异常 id={sid} {old_sym} -> {new_sym}")
-        strat.symbol = new_sym
-        strat.params["symbol"] = new_sym
+        raise
 
 
 def _run_bar_loop(
@@ -172,8 +171,8 @@ def _run_bar_loop(
         try:
             targets = strat.on_bar(bar) or []
         except Exception:  # noqa: BLE001
-            logger.exception(f"on_bar 异常 id={sid}")
-            targets = []
+            logger.exception(f"on_bar 异常 id={sid} symbol={bar.symbol} at={bar.datetime}")
+            raise
 
         if targets and all(isinstance(x, DirectSignal) for x in targets):
             logger.warning(f"DirectSignal 策略 {sid} 回测暂不支持")
@@ -257,7 +256,7 @@ def _dispatch_on_trade(strat, sim: ReconcileSimulator, bar: BarData, trade,
         new_targets = strat.on_trade(trade)
     except Exception:  # noqa: BLE001
         logger.exception(f"on_trade 异常 id={strat.strategy_id}")
-        return
+        raise
     if not isinstance(new_targets, list):
         return
     if new_targets and all(isinstance(x, DirectSignal) for x in new_targets):
@@ -345,8 +344,8 @@ def run_instance(
         try:
             targets = strat.on_bar(bar) or []
         except Exception:  # noqa: BLE001
-            logger.exception(f"on_bar 异常 id={sid}")
-            targets = []
+            logger.exception(f"on_bar 异常 id={sid} symbol={bar.symbol} at={bar.datetime}")
+            raise
 
         if targets and all(isinstance(x, DirectSignal) for x in targets):
             logger.warning(f"DirectSignal 策略 {sid} 回测暂不支持")

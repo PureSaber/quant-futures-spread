@@ -308,7 +308,8 @@ def test_panel_calendar_board_peers():
     ok("B2009&B2101" in p8, "4/8 新 spread peer")
 
 
-def test_apply_symbol_switch_fallback_on_exception():
+def test_apply_symbol_switch_propagates_exception():
+    import pytest
     from core.engine.runner import _apply_symbol_switch
     from core.engine.context import BacktestStrategyContext
     from core.engine.reconcile_sim import ReconcileSimulator
@@ -324,11 +325,12 @@ def test_apply_symbol_switch_fallback_on_exception():
     book = BacktestPositionBook()
     ctx = BacktestStrategyContext("p", market, book, {}, {})
     strat = _Broken("p", {"symbol": "A2005&A2009"}, ctx)
-    _apply_symbol_switch(
-        strat, ReconcileSimulator(), "p", "A2005&A2009", "A2009&A2101", ctx,
-        "DCE", 1.0, market, {}, "A", "comb", None,
-    )
-    ok(strat.symbol == "A2009&A2101", "hook 异常仍强制更新 symbol")
+    with pytest.raises(RuntimeError, match="boom"):
+        _apply_symbol_switch(
+            strat, ReconcileSimulator(), "p", "A2005&A2009", "A2009&A2101", ctx,
+            "DCE", 1.0, market, {}, "A", "comb", None,
+        )
+    ok(strat.symbol == "A2005&A2009", "hook 异常不能强制伪装为换月成功")
 
 
 if __name__ == "__main__":
@@ -346,5 +348,5 @@ if __name__ == "__main__":
     test_calendar_config_loads()
     test_market_store_clear_symbol()
     test_panel_calendar_board_peers()
-    test_apply_symbol_switch_fallback_on_exception()
+    test_apply_symbol_switch_propagates_exception()
     print("ALL UNIVERSE CALENDAR TESTS PASSED")
