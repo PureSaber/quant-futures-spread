@@ -63,16 +63,20 @@ class LegIntentAudit:
     quantity: FixedPoint
 
 
+def validate_signals(signals: tuple[SpreadSignal, ...]) -> None:
+    trigger_ids = [signal.trigger_event_id for signal in signals]
+    signal_ids = [signal.signal_id for signal in signals]
+    if len(trigger_ids) != len(set(trigger_ids)) or len(signal_ids) != len(set(signal_ids)):
+        raise ValueError("spread signal and trigger identifiers must be unique")
+
+
 class AuditedSpreadStrategy:
     """QExec Strategy whose only output is stable, leg-level ``OrderIntent`` facts."""
 
     sends_live_orders = False
 
     def __init__(self, signals: tuple[SpreadSignal, ...]) -> None:
-        trigger_ids = [signal.trigger_event_id for signal in signals]
-        signal_ids = [signal.signal_id for signal in signals]
-        if len(trigger_ids) != len(set(trigger_ids)) or len(signal_ids) != len(set(signal_ids)):
-            raise ValueError("spread signal and trigger identifiers must be unique")
+        validate_signals(signals)
         self._signals = {signal.trigger_event_id: signal for signal in signals}
         self.reset()
 

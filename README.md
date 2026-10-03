@@ -17,6 +17,23 @@ fixture-certified入口，且只支持确定性backtest，不含live broker、�
 策略`on_bar`、`on_trade`或`on_symbol_switch`回调抛出异常时，保留原始异常并中止整个研究回测；
 不把错误转换为空信号，也不强制标记换月成功。CLI以非零状态退出，不为失败运行生成完成提示或绩效输出。
 
+## 原生只读预检
+
+```bash
+qfs-certified-backtest --config config/certified_local_sample_v1.yaml --preflight
+qfs-certified-backtest --config config/certified_local_sample_v1.yaml --output-root output/certified
+```
+
+预检与正式回放共用输入准备路径，检查配置、主表、事件、信号唯一性和触发引用、初始现金与精度，
+返回`quant-futures-spread.preflight/v1`JSON。它不创建策略、撮合器、引擎或账本，不接受输出目录。
+回执明确标注`evidence_kind=synthetic`、`investable=false`，保留三份输入的SHA-256、修改时间、
+事件区间和输入指纹；输入在加载期间变化即失败。预检后正式回放仍重新读取并验证输入，
+执行期间变化也不能生成认证产物。
+
+预检通过只说明静态输入适用于仓内样例路径。双腿完整成交、流动性、保证金与成交风险仍由原生QExec回放判断。
+它不证明真实历史市场适用性，也不验证输出位置可写或替代正式运行的源码身份检查。
+此接口为统一入口提供只读能力；完整Studio模板及结果展示另行验收。
+
 ## 环境
 
 ```bash

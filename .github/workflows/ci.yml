@@ -39,6 +39,7 @@ jobs:
       - name: Ruff format check
         run: >-
           ruff format --check qfs_certified tests/test_certified_backtest.py
+          tests/test_preflight.py
           tests/test_coverage_factor_strategies.py
           tests/test_coverage_panels_research_utils.py
 

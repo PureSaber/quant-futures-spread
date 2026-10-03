@@ -415,7 +415,7 @@ def test_one_leg_margin_rejection_fails_closed(tmp_path: Path) -> None:
 def test_missing_signal_trigger_fails_closed_before_certification(tmp_path: Path) -> None:
     with pytest.raises(
         ValueError,
-        match=r"spread signal execution missing.*missing-trigger.*order_count=0",
+        match=r"spread signal trigger is absent.*missing-trigger",
     ):
         execute_certified_replay(
             _config(
