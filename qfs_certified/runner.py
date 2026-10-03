@@ -7,6 +7,7 @@ import hashlib
 import json
 import subprocess
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +28,7 @@ from qfs_certified.events import EventFixture, load_event_fixture
 from qfs_certified.ledger import SnapshotRecordingLedger
 from qfs_certified.reference import FixtureMaster, load_fixture_master, parse_utc
 from qfs_certified.standard_v2 import write_certified_standard_v2
-from qfs_certified.strategy import AuditedSpreadStrategy, SpreadSignal
+from qfs_certified.strategy import AuditedSpreadStrategy, SpreadSignal, validate_signals
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CERTIFIED_PROFILE = "qexec-fixture-v1"
@@ -73,12 +74,14 @@ def _load_config(path: str | Path) -> tuple[dict[str, Any], Path]:
     config_path = Path(path)
     if not config_path.is_absolute():
         config_path = (REPO_ROOT / config_path).resolve()
-    payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("certified config must be a mapping")
     if payload.get("mode") != "backtest":
         raise ValueError("certified runner supports backtest mode only; live paths are forbidden")
     if payload.get("certified_profile") != CERTIFIED_PROFILE:
         raise ValueError(f"certified_profile must be {CERTIFIED_PROFILE}")
-    if not str(payload.get("run_id", "")).strip():
+    if not isinstance(payload.get("run_id"), str) or not payload["run_id"].strip():
         raise ValueError("run_id is required")
     seed = payload.get("random_seed")
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
@@ -86,17 +89,113 @@ def _load_config(path: str | Path) -> tuple[dict[str, Any], Path]:
     if payload.get("execution") != CERTIFIED_EXECUTION:
         raise ValueError("execution must exactly declare the frozen QExec-only certified chain")
     fixture = payload.get("fixture") or {}
+    if not isinstance(fixture, dict):
+        raise ValueError("fixture must be a mapping")
     if fixture.get("certification") != "fixture-certified":
         raise ValueError("fixture.certification must be fixture-certified")
     account = payload.get("account") or {}
+    if not isinstance(account, dict):
+        raise ValueError("account must be a mapping")
     if account.get("base_currency") != "CNY":
         raise ValueError("certified domestic-futures account base_currency must be CNY")
-    if not str(account.get("account_id", "")).strip():
+    if not isinstance(account.get("account_id"), str) or not account["account_id"].strip():
         raise ValueError("account.account_id is required")
-    if not str(payload.get("strategy_id", "")).strip():
+    if not isinstance(payload.get("strategy_id"), str) or not payload["strategy_id"].strip():
         raise ValueError("strategy_id is required")
     parse_utc(str(payload.get("created_at", "")), "created_at")
     return payload, config_path
+
+
+def _input_state(paths: dict[str, Path]) -> dict[str, dict[str, Any]]:
+    result = {}
+    for name, path in paths.items():
+        before = path.stat()
+        digest = _sha256(path)
+        after = path.stat()
+        if (before.st_mtime_ns, before.st_size) != (after.st_mtime_ns, after.st_size):
+            raise ValueError(f"fixture input changed while reading: {name}")
+        result[name] = {"sha256": digest, "mtime_ns": after.st_mtime_ns}
+    return result
+
+
+@dataclass(frozen=True)
+class CertifiedInputs:
+    config: dict[str, Any]
+    config_path: Path
+    master_path: Path
+    events_path: Path
+    master: FixtureMaster
+    event_fixture: EventFixture
+    signals: tuple[SpreadSignal, ...]
+    initial_cash: FixedPoint
+    money_scale: int
+    input_state: dict[str, dict[str, Any]]
+
+
+def prepare_certified_inputs(config_path: str | Path) -> CertifiedInputs:
+    """Load and validate static inputs without strategy, engine or account state."""
+    path = Path(config_path)
+    path = (path if path.is_absolute() else REPO_ROOT / path).resolve()
+    config_before = _input_state({"config": path})["config"]
+    config, resolved_config = _load_config(path)
+    fixture = config["fixture"]
+    master_path = _resolve_repo_path(str(fixture.get("instrument_master", "")))
+    events_path = _resolve_repo_path(str(fixture.get("market_events", "")))
+    paths = {"config": path, "instrument_master": master_path, "market_events": events_path}
+    before = _input_state(paths)
+    if config_before != before["config"]:
+        raise ValueError("fixture config changed while loading")
+    as_of = parse_utc(str(fixture.get("as_of", "")), "fixture.as_of")
+    master = load_fixture_master(master_path, as_of=as_of)
+    event_fixture = load_event_fixture(events_path, master=master)
+    source = str(fixture.get("source", "qfs-local-sample-v1"))
+    symbol_map = {
+        mapping.provider_symbol: master.resolve(source, mapping.provider_symbol, as_of)
+        for mapping in master.mappings
+        if mapping.source == source
+    }
+    signal_payloads = config.get("signals", [])
+    if not isinstance(signal_payloads, list) or any(
+        not isinstance(item, dict) for item in signal_payloads
+    ):
+        raise ValueError("signals must be a list of mappings")
+    signals = tuple(
+        SpreadSignal.from_config(item, symbol_map=symbol_map) for item in signal_payloads
+    )
+    if not signals:
+        raise ValueError("certified strategy requires at least one spread signal")
+    validate_signals(signals)
+    event_ids = {event.event_id for event in event_fixture.events}
+    missing = [signal.signal_id for signal in signals if signal.trigger_event_id not in event_ids]
+    if missing:
+        raise ValueError(f"spread signal trigger is absent from fixture: {missing}")
+    account = config["account"]
+    money_scale = account.get("money_scale", 8)
+    if isinstance(money_scale, bool) or not isinstance(money_scale, int) or money_scale < 0:
+        raise ValueError("account.money_scale must be a non-negative integer")
+    try:
+        amount = Decimal(str(account.get("initial_cash", "")))
+    except InvalidOperation as exc:
+        raise ValueError("account.initial_cash must be finite and positive") from exc
+    if not amount.is_finite() or amount <= 0:
+        raise ValueError("account.initial_cash must be finite and positive")
+    cash = FixedPoint.from_decimal(amount, money_scale)
+    if not cash.is_positive():
+        raise ValueError("account.initial_cash must be positive at money_scale")
+    if _input_state(paths) != before:
+        raise ValueError("fixture inputs changed during validation")
+    return CertifiedInputs(
+        config,
+        resolved_config,
+        master_path,
+        events_path,
+        master,
+        event_fixture,
+        signals,
+        cash,
+        money_scale,
+        before,
+    )
 
 
 @dataclass(frozen=True)
@@ -111,6 +210,7 @@ class CertifiedReplay:
     config_path: Path
     master_path: Path
     events_path: Path
+    input_state: dict[str, dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -179,33 +279,16 @@ def _assert_complete_spread_executions(
 
 
 def execute_certified_replay(config_path: str | Path) -> CertifiedReplay:
-    config, resolved_config = _load_config(config_path)
-    fixture = config.get("fixture") or {}
-    master_path = _resolve_repo_path(str(fixture.get("instrument_master", "")))
-    events_path = _resolve_repo_path(str(fixture.get("market_events", "")))
-    as_of = parse_utc(str(fixture.get("as_of", "")), "fixture.as_of")
-    master = load_fixture_master(master_path, as_of=as_of)
-    event_fixture = load_event_fixture(events_path, master=master)
-    source = str(fixture.get("source", "qfs-local-sample-v1"))
-    symbol_map = {
-        mapping.provider_symbol: master.resolve(source, mapping.provider_symbol, as_of)
-        for mapping in master.mappings
-        if mapping.source == source
-    }
-    signals = tuple(
-        SpreadSignal.from_config(item, symbol_map=symbol_map) for item in config.get("signals", [])
-    )
-    if not signals:
-        raise ValueError("certified strategy requires at least one spread signal")
-    strategy = AuditedSpreadStrategy(signals)
-
-    account = config.get("account") or {}
+    prepared = prepare_certified_inputs(config_path)
+    config = prepared.config
+    master = prepared.master
+    event_fixture = prepared.event_fixture
+    strategy = AuditedSpreadStrategy(prepared.signals)
+    account = config["account"]
     account_id = str(account.get("account_id", ""))
     base_currency = str(account.get("base_currency", ""))
-    money_scale = int(account.get("money_scale", 8))
-    initial_cash = {
-        base_currency: FixedPoint.from_decimal(str(account["initial_cash"]), money_scale)
-    }
+    money_scale = prepared.money_scale
+    initial_cash = {base_currency: prepared.initial_cash}
     ledger = SnapshotRecordingLedger(
         account_id=account_id,
         base_currency=base_currency,
@@ -244,9 +327,10 @@ def execute_certified_replay(config_path: str | Path) -> CertifiedReplay:
         strategy=strategy,
         ledger=ledger,
         config=config,
-        config_path=resolved_config,
-        master_path=master_path,
-        events_path=events_path,
+        config_path=prepared.config_path,
+        master_path=prepared.master_path,
+        events_path=prepared.events_path,
+        input_state=prepared.input_state,
     )
 
 
@@ -258,7 +342,14 @@ def run_certified_backtest(
 ) -> CertifiedRun:
     replay = execute_certified_replay(config_path)
     run_dir = Path(output_root) / replay.result.run_id
-    master_hash = _sha256(replay.master_path)
+    paths = {
+        "config": replay.config_path,
+        "instrument_master": replay.master_path,
+        "market_events": replay.events_path,
+    }
+    if _input_state(paths) != replay.input_state:
+        raise ValueError("fixture inputs changed during replay")
+    master_hash = replay.input_state["instrument_master"]["sha256"]
     manifest = write_certified_standard_v2(
         run_dir,
         artifacts=replay.artifacts,
@@ -269,8 +360,8 @@ def run_certified_backtest(
         code_version=code_version or _repository_code_version(),
         dataset_snapshots={
             "instrument_master": f"sha256:{master_hash}",
-            "market_events": f"sha256:{_sha256(replay.events_path)}",
-            "signal_plan": f"sha256:{_sha256(replay.config_path)}",
+            "market_events": f"sha256:{replay.input_state['market_events']['sha256']}",
+            "signal_plan": f"sha256:{replay.input_state['config']['sha256']}",
         },
         instrument_master_version=f"{replay.master.schema_version}@sha256:{master_hash}",
         random_seed=int(replay.config["random_seed"]),
@@ -283,8 +374,18 @@ def run_certified_backtest(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True)
-    parser.add_argument("--output-root", required=True)
+    parser.add_argument("--output-root")
+    parser.add_argument("--preflight", action="store_true", help="Read-only fixture/config check")
     args = parser.parse_args(argv)
+    if args.preflight:
+        if args.output_root is not None:
+            parser.error("--preflight does not accept --output-root")
+        from qfs_certified.preflight import preflight
+
+        print(json.dumps(preflight(args.config), ensure_ascii=False, sort_keys=True))
+        return 0
+    if args.output_root is None:
+        parser.error("--output-root is required unless --preflight is selected")
     completed = run_certified_backtest(args.config, args.output_root)
     print(
         json.dumps(
