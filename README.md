@@ -10,6 +10,10 @@ Public research repository on GitHub: [`PureSaber/quant-futures-spread`](https:/
 legacy/research-only，不是认证成交、资金、持仓或NAV的事实来源；`qfs_certified/`才是
 fixture-certified入口，且只支持确定性backtest，不含live broker、凭据或真实下单路径。
 
+旧研究入口同样拒绝异常行情：已提供的数值列必须有限，时间不能为空、重复或倒序。
+价差允许负数和零；`trade`仅接受布尔值、0/1及对应字符串（忽略首尾空白和大小写）。
+缺省可选列仍使用文档约定的研究值，但已提供列中的坏值不会再静默填充。
+
 ## 环境
 
 ```bash
