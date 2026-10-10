@@ -66,7 +66,7 @@ pytz==2026.3.post1
     # via pandas
 pyyaml==6.0.3
     # via quant-data-kit
-quant-data-kit @ git+https://github.com/PureSaber/quant-data-kit.git@3b1684dfb1ecddd0c7df95f1fbac9b21119e9f55
+quant-data-kit @ git+https://github.com/PureSaber/quant-data-kit.git@ab17ee7b8c417aa72a9707106f5455beba965b76
     # via quant-execution (pyproject.toml)
 referencing==0.37.0
     # via
@@ -104,4 +104,4 @@ websockets==15.0.1
 setuptools==84.0.0
     # via quant-execution (pyproject.toml::build-system.requires)
 
-quant-execution @ git+https://github.com/PureSaber/quant-execution.git@f6c579363f0500c15753ab7fb8c3a3702061870f
+quant-execution @ git+https://github.com/PureSaber/quant-execution.git@4bd7a44e5637b24565317a8a0b30fc4f6794736c
