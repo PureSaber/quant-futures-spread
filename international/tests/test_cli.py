@@ -16,7 +16,9 @@ def test_cli_preflight_run_verify_and_failure_receipts(tmp_path, capsys):
     assert preflight["software_preflight"] == "pass" and preflight["investable"] is False
     output = tmp_path / "result"
     assert main(["run", *args, "--output", str(output)]) == 0
-    capsys.readouterr()
+    receipt = capsys.readouterr().out
+    assert receipt.isascii()  # JSON must survive legacy Windows console encodings.
+    assert json.loads(receipt)
     assert main(["verify", "--output", str(output)]) == 0
     assert json.loads(capsys.readouterr().out)["status"] == "passed"
     for bad in (["run"], ["verify"], ["run", *args]):

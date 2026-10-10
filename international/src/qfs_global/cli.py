@@ -30,7 +30,7 @@ def main(argv=None):
             if not args.output:
                 raise ValueError("--output required")
             result = run(args.bundle, config, args.output)
-        print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))
+        print(json.dumps(result, ensure_ascii=True, indent=2, allow_nan=False))
         return 0
     except (ValueError, OSError, KeyError, TypeError) as exc:
         parser.exit(2, f"futures research rejected: {exc}\n")
