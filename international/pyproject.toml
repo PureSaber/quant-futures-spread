@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-futures-global"
+version = "0.1.0"
+description = "International futures chains, calendar spreads and causal roll research"
+requires-python = ">=3.12"
+dependencies = ["quant-data-kit @ git+https://github.com/PureSaber/quant-data-kit.git@3b1684dfb1ecddd0c7df95f1fbac9b21119e9f55",
+"quant-execution @ git+https://github.com/PureSaber/quant-execution.git@f6c579363f0500c15753ab7fb8c3a3702061870f"]
+
+[project.optional-dependencies]
+dev = ["pytest>=9", "pytest-cov>=7", "ruff==0.16.10"]
+
+[project.scripts]
+qfs-global = "qfs_global.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
