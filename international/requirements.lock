@@ -1,0 +1,107 @@
+# Derivative research Python 3.12 lock.
+# Exact dependency closure inherited from the pinned quant-execution lock;
+# application has no additional runtime dependencies.
+attrs==26.1.0
+    # via
+    #   jsonschema
+    #   referencing
+colorama==0.4.6
+    # via pytest
+coverage==7.16.0
+    # via pytest-cov
+duckdb==1.5.5
+    # via quant-data-kit
+exceptiongroup==1.3.1
+    # via
+    #   pytest
+    #   quant-execution (pyproject.toml)
+exchange-calendars==4.13.2
+    # via quant-execution (pyproject.toml)
+iniconfig==2.3.0
+    # via pytest
+jsonschema==4.26.0
+    # via
+    #   quant-data-kit
+    #   quant-execution (pyproject.toml)
+jsonschema-rs==0.52.1
+    # via quant-data-kit
+jsonschema-specifications==2025.9.1
+    # via jsonschema
+korean-lunar-calendar==0.4.0
+    # via exchange-calendars
+numpy==2.2.6
+    # via
+    #   exchange-calendars
+    #   pandas
+    #   quant-data-kit
+orjson==3.12.0
+    # via quant-data-kit
+packaging==26.3
+    # via pytest
+pandas==2.3.3
+    # via
+    #   exchange-calendars
+    #   quant-data-kit
+pluggy==1.6.0
+    # via
+    #   pytest
+    #   pytest-cov
+pyarrow==25.0.1
+    # via
+    #   quant-data-kit
+    #   quant-execution (pyproject.toml)
+pygments==2.21.0
+    # via pytest
+pyluach==2.3.0
+    # via exchange-calendars
+pytest==9.1.1
+    # via
+    #   pytest-cov
+    #   quant-execution (pyproject.toml)
+pytest-cov==7.1.0
+    # via quant-execution (pyproject.toml)
+python-dateutil==2.9.0.post0
+    # via pandas
+pytz==2026.3.post1
+    # via pandas
+pyyaml==6.0.3
+    # via quant-data-kit
+quant-data-kit @ git+https://github.com/PureSaber/quant-data-kit.git@3b1684dfb1ecddd0c7df95f1fbac9b21119e9f55
+    # via quant-execution (pyproject.toml)
+referencing==0.37.0
+    # via
+    #   jsonschema
+    #   jsonschema-specifications
+rpds-py==0.30.0
+    # via
+    #   -c requirements-constraints.txt
+    #   jsonschema
+    #   referencing
+ruff==0.16.10
+    # via quant-execution (pyproject.toml)
+six==1.17.0
+    # via python-dateutil
+tomli==2.4.1
+    # via
+    #   coverage
+    #   pytest
+    #   quant-execution (pyproject.toml)
+toolz==1.1.0
+    # via exchange-calendars
+typing-extensions==4.16.0
+    # via
+    #   exceptiongroup
+    #   quant-data-kit
+    #   referencing
+tzdata==2026.3
+    # via
+    #   exchange-calendars
+    #   pandas
+websockets==15.0.1
+    # via quant-data-kit
+
+# The following packages are considered to be unsafe in a requirements file:
+setuptools==84.0.0
+    # via quant-execution (pyproject.toml::build-system.requires)
+
+quant-execution @ git+https://github.com/PureSaber/quant-execution.git@f6c579363f0500c15753ab7fb8c3a3702061870f
