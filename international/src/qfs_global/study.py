@@ -82,6 +82,7 @@ def selector(bundle, config):
 
 def preflight(bundle, raw):
     config = configuration(raw)
+    bundle.require_mode(config["mode"])
     contracts = bundle.contracts
     if any(c.kind != "future" for c in contracts):
         raise ValueError("futures study requires a future-only bundle")
