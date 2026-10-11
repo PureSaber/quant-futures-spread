@@ -104,4 +104,4 @@ websockets==15.0.1
 setuptools==84.0.0
     # via quant-execution (pyproject.toml::build-system.requires)
 
-quant-execution @ git+https://github.com/PureSaber/quant-execution.git@4bd7a44e5637b24565317a8a0b30fc4f6794736c
+quant-execution @ git+https://github.com/PureSaber/quant-execution.git@9aecdcc4547e1906eb08c2053513a2a206ccdbf6
