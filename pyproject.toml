@@ -77,7 +77,7 @@ ignore = ["E501", "E402", "E731"]
 [tool.coverage.run]
 branch = true
 source = ["."]
-omit = ["tests/*", "international/*"] # separately tested in international.yml with its own lock
+omit = ["tests/*", "international/*", "macro/*"] # independent runtimes have dedicated locked CI jobs
 
 [tool.coverage.report]
 fail_under = 80
