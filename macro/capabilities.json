@@ -1,0 +1,18 @@
+{
+  "schema_version": "quant.macro.capabilities/v1",
+  "as_of": "2026-10-11",
+  "application": "quant-macro",
+  "source_subdirectory": "macro",
+  "runtime": "Python >=3.12, standard library",
+  "research_lines": {
+    "fx": ["bid_ask_csv_import", "point_in_time_signals", "two_currency_cash", "spot_replay", "observed_forward_replay", "funding", "fees", "roll_and_fixing", "leverage_cap"],
+    "rates": ["explicit_bullet_cashflows", "accrued_interest", "continuous_zero_curve", "clean_dirty_price", "dv01", "duration", "convexity", "parallel_scenarios", "ctd_future_approximation", "stir_quote_risk"],
+    "credit": ["z_spread", "sparse_quote_policy", "point_in_time_etf_holdings", "dirty_price_basket_nav", "premium_discount", "basket_dv01"]
+  },
+  "futures_replay": "Existing international/qfs_global application; explicit qdk.derivatives/v1 contracts and settlements required",
+  "evidence_kind": "synthetic",
+  "market_data_certified": false,
+  "release_verified": false,
+  "live_execution": false,
+  "remaining": ["licensed_market_history_acceptance", "multi_pair_portfolio_netting", "venue_settlement_calendars", "collateral_and_margin_for_otc_fx", "bond_total_return_execution_replay", "default_and_callable_bond_models", "etf_creation_redemption_execution"]
+}
