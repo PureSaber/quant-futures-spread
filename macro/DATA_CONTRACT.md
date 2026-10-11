@@ -139,7 +139,9 @@ baskets 每项为 `instrument_id,observed_at,available_at,faces_per_share,cash_p
 `data.reference` 含 `provider,raw_sha256,records`。每条记录保留日期、序列 ID、
 数据种类、单位、取得时间；缺测值不前向填充，重复时点拒绝。
 报告从冻结的规范化记录复算；来源真实性及供应商后续修订不在校验范围。
-目前 ECB / Fed 已通过真实下载验收；iShares 只有格式及合成样例验收，需合法 CSV 文件。
+ECB / Fed 已通过真实下载验收；iShares 官方端点于 2026-10-11 重试成功，
+2026-10-08 的 3,169 条 LQD 持仓已完成真实下载、导入和工作台验收。
+若来源后续拒绝下载，仍可使用合法取得的本地 CSV；持仓参考估值不等同于可成交报价。
 
 ## 期货规则入口（0.2）
 
