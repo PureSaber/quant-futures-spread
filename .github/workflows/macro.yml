@@ -1,0 +1,30 @@
+name: macro research
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  macro:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: macro
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --no-deps -r ../international/requirements.lock
+      - run: python -m pip install --no-deps --no-build-isolation -e . -e ../international
+      - run: python -m pip check
+      - run: python -m ruff check src tests
+      - run: python -m ruff format --check src tests
+      - run: python -m pytest -q
+      - run: python -m quant_macro.cli demo --output demo-bundle
+      - run: python -m quant_macro.cli run --bundle demo-bundle --config examples/fx-forward.json --output demo-result
+      - run: python -m quant_macro.cli verify --output demo-result

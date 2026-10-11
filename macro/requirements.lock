@@ -1,0 +1,9 @@
+# Python 3.12 development tools. quant-macro has no third-party runtime dependencies.
+setuptools==84.0.0
+pytest==9.1.1
+ruff==0.16.10
+iniconfig==2.3.0
+packaging==26.3
+pluggy==1.6.0
+pygments==2.21.0
+colorama==0.4.6 ; sys_platform == "win32"
