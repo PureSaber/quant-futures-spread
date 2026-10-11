@@ -7,19 +7,24 @@ import io
 import re
 from pathlib import Path
 
-from . import __version__, bonds, fx
+from . import __version__, bond_replay, bonds, fx, fx_portfolio, public_data
 from .common import canonical, keys, nonempty, read_json, stamp
 
 LIMITS = (
     "Offline research; modeled fills, no broker or live orders. No market-data or release "
-    "certification. FX: two-currency accounts per pair, quote-currency NAV, simple funding "
-    "on prior known rates, no settlement-lag calendar, no margin/collateral model, "
+    "certification. Single-pair FX uses same-day settlement; FX portfolios use supplied "
+    "joint calendars and T+n settlement, shared currency cash and daily funding. "
+    "No collateral model; "
     "cash-settled forwards only. Bonds: explicit fixed bullet cash flows per 100 face, "
     "payment=end, no default/call/put/ex-coupon model; continuous ACT/365F zero curve "
     "anchored at settlement, linear zero interpolation, no extrapolation; z-spread is "
     "not OAS or pure default risk. ETF baskets are indicative valuations, not official NAV "
     "or executable creation/redemption baskets. Treasury DV01 is a CTD approximation; "
     "gross basis excludes carry and delivery options. STIR quotes use 100 minus rate."
+    " Bond/ETF replay uses fractional units, explicit settlement calendars, secondary-market "
+    "trades, coupon/redemption and ETF distribution events; no defaults, calls or AP creations. "
+    "Public reference histories are latest-vintage diagnostics, never executable bid/ask "
+    "or original PIT vintages."
 )
 
 
@@ -60,7 +65,7 @@ def load_bundle(path):
     if manifest["data_sha256"] != digest(data_bytes):
         raise ValueError("bundle data hash mismatch")
     data = read_json(root / "data.json")
-    keys(data, (), ("fx", "fixed_income"))
+    keys(data, (), ("fx", "fixed_income", "fx_portfolio", "bond_replay", "reference"))
     if not data:
         raise ValueError("empty bundle")
     return manifest, data
@@ -76,6 +81,23 @@ def calculate(manifest, data, config):
         tables = fx.replay(data["fx"], c)
         ids = [data["fx"]["base"] + "/" + data["fx"]["quote"]]
         rows = len(data["fx"]["quotes"])
+    elif config.get("line") in {"fx_portfolio", "bond_replay"}:
+        if manifest["quote_use"] != "observed_bid_ask":
+            raise ValueError("account replay requires observed bid/ask")
+        line = config["line"]
+        module = fx_portfolio if line == "fx_portfolio" else bond_replay
+        c = module.configuration(config)
+        tables = module.replay(data[line], c)
+        terms = data[line]["pairs" if line == "fx_portfolio" else "instruments"]
+        ids = [r["instrument_id"] for r in terms]
+        rows = len(data[line]["observations"])
+    elif config.get("line") == "reference_history":
+        if manifest["quote_use"] != "reference_only":
+            raise ValueError("reference history must be labeled reference_only")
+        c = public_data.configuration(config)
+        tables = public_data.analyze(data["reference"], c)
+        ids = [r["instrument_id"] for r in tables["coverage"]]
+        rows = len(tables["reference"])
     else:
         c = bonds.configuration(config)
         tables = bonds.analyze(data["fixed_income"], c)
@@ -116,6 +138,9 @@ def render_report(study, tables):
         "fx": "外汇现货与远期研究",
         "rates": "国债、曲线与利率期货研究",
         "credit": "公司债与债券 ETF 研究",
+        "fx_portfolio": "多币种外汇组合账户",
+        "bond_replay": "债券与 ETF 账户回放",
+        "reference_history": "公开参考数据历史与风险分析",
     }[study["config"]["line"]]
     chunks = [
         "<!doctype html><html lang='zh-CN'><meta charset='utf-8'>",
@@ -126,6 +151,7 @@ def render_report(study, tables):
         f"<h1>{title}</h1><p>数据性质：{html.escape(study['evidence_kind'])}；",
         "研究状态：离线研究，未经市场数据认证。</p>",
         f"<p>来源：{html.escape(study['source'])}</p>",
+        f"<p>数据边界：{html.escape(study.get('source_limits', ''))}</p>",
         f"<p>{html.escape(LIMITS)}</p>",
     ]
     for name, rows in tables.items():
@@ -159,6 +185,7 @@ def output_files(manifest, data, config):
         "evidence_kind": manifest["evidence_kind"],
         "input_sha256": manifest["data_sha256"],
         "source": manifest["source"],
+        "source_limits": manifest["limits"],
         "config": c,
         "instrument_ids": ids,
         "market_data_certified": False,

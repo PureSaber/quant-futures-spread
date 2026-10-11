@@ -19,8 +19,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
-      - run: python -m pip install --no-deps -r requirements.lock
-      - run: python -m pip install --no-deps --no-build-isolation -e .
+      - run: python -m pip install --no-deps -r ../international/requirements.lock
+      - run: python -m pip install --no-deps --no-build-isolation -e . -e ../international
       - run: python -m pip check
       - run: python -m ruff check src tests
       - run: python -m ruff format --check src tests

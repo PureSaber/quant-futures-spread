@@ -1,39 +1,34 @@
-# 本地开发验收 · 2026-10-11
+# 宏观研究 0.2 本机验收 · 2026-10-11
 
-本记录覆盖新增 `macro/` 研究应用及配套 Studio 模板，数据全部为合成样例。
-
-| 检查 | 结果 |
+| 检查 | 实际结果 |
 |---|---|
-| 应用单元、失败路径、CSV 导入与 CLI 测试 | 34 passed |
-| Ruff lint 与 format | 通过 |
-| Studio 模板、净值、已有衍生品、固定版本引用、预检、设置与资产模板回归 | 51 passed |
-| 实际 Studio 调度：FX spot | 预检、执行、报告收集、哈希与确定性复算通过 |
-| 实际 Studio 调度：FX forward | 同上，含三次到期现金结算 |
-| 实际 Studio 调度：rates | 同上，含国债与两类利率期货风险输出 |
-| 实际 Studio 调度：credit | 同上，含公司债和 ETF 成分估值 |
+| 宏观应用全部测试 | 60 passed，包括 7 个期货规则入口及真实 QExec 回放 |
+| Studio 相关回归 | 55 passed：模板、净值、衍生品、版本引用、预检、设置、资产模板 |
+| Ruff lint / format | 两侧本次修改通过 |
+| 独立环境依赖闭合 | pip check：No broken requirements found |
+| 真实 Studio 预检、执行、收集、校验 | 16 条通过 |
+| ECB 真实历史 | 2025-01-02 至 2026-10-09；30 对 EUR 参考序列，13,392 条记录 |
+| Fed GSW 真实零息曲线 | 2025-01-02 至 2026-10-02；30 个期限，13,170 条记录 |
+| iShares LQD 自动下载 | 来源返回 Access Denied；仅格式导入和合成数据测试通过 |
 
-运行环境为 Windows、Python 3.12.14；测试框架使用本机既有 pytest 9.1.1，
-Ruff 0.16.10，Studio 使用 PyYAML 6.0.3。应用运行时本身无第三方依赖。
-独立运行环境安装了本次应用和 Studio；PyYAML 从本机既有相同 Python 3.12 环境复制，
-没有使用不可获得的网络安装结果作为证据。
+独立环境为 Windows Python 3.12.14，quant-macro 0.2.0，quant-futures-global 0.1.0，
+QDK 0.8.1，QExec 0.6.0，pytest 9.1.1，ruff 0.16.10，PyYAML 6.0.3。
+第三方依赖按 international/requirements.lock 安装；核心宏观应用没有第三方依赖。
+验收脚本的子进程使用 python -I，不依赖临时 PYTHONPATH。
 
-首次联调发现 FX 净值列不被 Studio 识别，以及五类新债券表未进入输出白名单。
-已分别补上 datetime 列和明确的表名白名单，并重新执行四条完整流程通过。
+16 条完整流程：FX spot、FX forward、rates valuation、credit valuation、FX portfolio、
+bond replay、ETF relative value、ECB reference、Fed GSW reference、6E、ZN、SR3、TS、TF、T、TL。
+工作台脚本 scripts/integration_macro.py --public-root ... --futures 可重跑。
+本机回执在 SCRATCH/macro-20261011/acceptance-v2-full/receipts.json。
 
-主要独立数值依据包括：一年期零息债连续复利解析解及其久期／凸性；
-买入 10,000 基准币于 1.101、卖出于 1.099 的 20 报价币损失；
-远期固定执行价与明确 fixing 的结算公式；ETF 篮子的面值、全价、现金与负债核对；
-STIR 利率升高时多头亏损方向与每手基点单位。
+账户检验覆盖：共享币种只计息一次、未结算本金计入净值、零成本不变价格的现金守恒、
+逐币种账本到余额再到净值核对、下一观察成交、共同节假日、结算日应计息、
+付息日当日结算不重复领取票息、到期本金仅入账一次、空头借券限制和代付分红、
+缺少成交报价、未来数据、杠杆和尾部未履约义务拒绝。
 
-负向路径覆盖 NaN、交叉报价、未来发布、陈旧或缺失报价、缺失 fixing、
-缺失同到期远期报价、曲线覆盖不足、未知 ETF 成分、币种冲突、非支持本金现金流、
-重复 JSON 键、杠杆超限、输入哈希变化、输出覆盖和产物篡改。
+宏观 verify 从冻结输入与配置重新生成所有产物；QExec verify 检查产物哈希和每笔分录平衡，
+二者校验范围不同。来源真实性、历史数据权利与原始 PIT 完整性均不因此获得认证。
+ECB/Fed 是本次取得的历史参考版本，绝不作为真实 bid/ask 或历史融资成本使用。
+期货样例只采用公开报价单位；价格、到期日期和保证金仍为明确合成数据。
 
-完整流程可使用 Studio 的 `scripts/integration_macro.py` 重跑，输入、配置、
-运行记录、报告及 verification 结果一起保存在新输出目录。当前本机最终证据目录为
-`SCRATCH/macro-20261011/acceptance-final`。
-
-新增 `.github/workflows/macro.yml` 已提供 Linux／Windows 检查配置，
-本记录不声称远端 CI 已执行。外汇与利率期货模板是既有引擎入口；
-本次未新增真实市场样本、交易所规则认证或期货引擎实现。
-未进行线上工作台部署或实盘交易接入。
+远端 CI、合并与组合部署由交付回执单独记录；本文件只陈述已经执行的本机验收。

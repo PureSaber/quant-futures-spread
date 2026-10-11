@@ -153,9 +153,11 @@ def demo_data():
 
 
 def create_demo(output):
+    from .account_demo import data as account_data
+
     root = Path(output)
     root.mkdir(parents=True, exist_ok=False)
-    data = canonical(demo_data())
+    data = canonical(demo_data() | account_data())
     manifest = {
         "schema_version": "quant.macro.bundle/v1",
         "evidence_kind": "synthetic",

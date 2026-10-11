@@ -7,12 +7,16 @@
   "research_lines": {
     "fx": ["bid_ask_csv_import", "point_in_time_signals", "two_currency_cash", "spot_replay", "observed_forward_replay", "funding", "fees", "roll_and_fixing", "leverage_cap"],
     "rates": ["explicit_bullet_cashflows", "accrued_interest", "continuous_zero_curve", "clean_dirty_price", "dv01", "duration", "convexity", "parallel_scenarios", "ctd_future_approximation", "stir_quote_risk"],
-    "credit": ["z_spread", "sparse_quote_policy", "point_in_time_etf_holdings", "dirty_price_basket_nav", "premium_discount", "basket_dv01"]
+    "credit": ["z_spread", "sparse_quote_policy", "point_in_time_etf_holdings", "dirty_price_basket_nav", "premium_discount", "basket_dv01"],
+    "fx_portfolio": ["shared_multi_currency_ledger", "cross_rate_validation", "joint_business_calendars", "tn_settlement", "pending_principal_nav", "per_currency_funding", "causal_signals", "flat_pair_closeout"],
+    "bond_replay": ["dirty_settlement_execution", "coupon_reinvestment", "bullet_redemption", "etf_ex_date_receivables", "cash_funding", "short_borrow_constraints", "secondary_market_etf_basket_strategy"],
+    "reference_history": ["ecb_xml_download_import", "fed_gsw_csv_download_import", "ishares_csv_import", "raw_source_hashes", "latest_vintage_labels", "zero_yield_scenarios"]
   },
-  "futures_replay": "Existing international/qfs_global application; explicit qdk.derivatives/v1 contracts and settlements required",
-  "evidence_kind": "synthetic",
+  "futures_replay": "Product unit gate for 6E, ZN, SR3, TS, TF, T, TL; existing international/qfs_global and frozen QDK/QExec execute the account",
+  "evidence_kinds": ["synthetic", "retrospective"],
   "market_data_certified": false,
   "release_verified": false,
   "live_execution": false,
-  "remaining": ["licensed_market_history_acceptance", "multi_pair_portfolio_netting", "venue_settlement_calendars", "collateral_and_margin_for_otc_fx", "bond_total_return_execution_replay", "default_and_callable_bond_models", "etf_creation_redemption_execution"]
+  "manual_data_requirements": ["licensed_bid_ask_forward_and_futures_history", "historical_contract_terms_margin_borrow_and_calendar_sources", "issuer_holdings_csv_when_source_blocks_download"],
+  "scope_limits": ["uncertified_research_not_live_execution", "no_otc_collateral_credit_model", "fixed_bullet_bonds_no_defaults_or_call_options", "secondary_market_etf_strategy_no_primary_ap_creation", "reference_sources_not_executable_or_original_pit"]
 }

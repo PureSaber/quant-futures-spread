@@ -83,3 +83,35 @@ def import_fx(csv_path, metadata_path, output):
         "rows": len(rows),
         "evidence_kind": metadata["evidence_kind"],
     }
+
+
+def seal(source_file, metadata_file, config_file, output):
+    """Validate and seal user-authorized JSON histories before publishing a bundle."""
+    from .study import calculate
+
+    data = read_json(Path(source_file))
+    meta = read_json(Path(metadata_file))
+    keys(meta, ("evidence_kind", "source", "license", "retrieved_at", "quote_use", "limits"))
+    if meta["evidence_kind"] not in {"synthetic", "retrospective"}:
+        raise ValueError("explicit evidence_kind required")
+    if meta["quote_use"] not in {"observed_bid_ask", "reference_only"}:
+        raise ValueError("explicit quote_use required")
+    for field in ("source", "license", "limits"):
+        nonempty(meta[field], field)
+    stamp(meta["retrieved_at"])
+    keys(data, (), ("fx", "fixed_income", "fx_portfolio", "bond_replay", "reference"))
+    payload = canonical(data)
+    manifest = meta | {"schema_version": "quant.macro.bundle/v1", "data_sha256": digest(payload)}
+    config, tables, ids, rows = calculate(manifest, data, read_json(Path(config_file)))
+    root = Path(output)
+    root.mkdir(parents=True, exist_ok=False)
+    (root / "data.json").write_bytes(payload)
+    (root / "manifest.json").write_bytes(canonical(manifest))
+    return dict(
+        bundle=str(root.resolve()),
+        line=config["line"],
+        rows=rows,
+        instruments=len(ids),
+        tables=list(tables),
+        investable=False,
+    )
