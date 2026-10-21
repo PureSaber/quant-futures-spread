@@ -458,19 +458,17 @@ def test_common_utility_branches_and_panel_registry(tmp_path, monkeypatch) -> No
     assert Boll3([1, 2], 2, 0) == {"long": [], "short": []}
     assert len(Boll3([1, 2, 3], 2, 0.1, nb_offset=0.2)["long"]) == 2
 
-    monkeypatch.setattr(panel_registry, "_CACHE_DIR", tmp_path)
     panel_registry.clear_panels()
     assert panel_registry.get_panel("") is None
     legacy = SimpleNamespace(value=1)
     panel_registry.register_panel("run", legacy)
     assert panel_registry.get_panel("run").calendar_by_product == {}
     panel_registry.clear_panels()
-    loaded = panel_registry.get_panel("run")
-    assert loaded.value == 1
+    assert panel_registry.get_panel("run") is None
     assert panel_registry.get_panel("missing") is None
     panel_registry.register_panel("", object())
     assert not (tmp_path / ".pkl").exists()
     with (tmp_path / "manual.pkl").open("wb") as file_handle:
         pickle.dump(SimpleNamespace(calendar_by_product={"A": {}}), file_handle)
     panel_registry.clear_panels()
-    assert panel_registry.get_panel("manual").calendar_by_product == {"A": {}}
+    assert panel_registry.get_panel("manual") is None

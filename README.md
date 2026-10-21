@@ -140,3 +140,11 @@ ruff format --check qfs_certified tests/test_certified_backtest.py tests/test_co
 ruff check .
 python -m pytest --cov=. --cov-branch --cov-report=term-missing --cov-fail-under=80 -q
 ```
+## Research panel lifetime
+
+Sector panels are rebuilt for each backtest invocation, even when `run_id` is
+reused. Multiprocessing workers receive the current parent panel at startup.
+The registry no longer persists or loads `.panel_cache/*.pkl`; existing cache files
+are ignored. This prevents prior input/configuration state from changing a fresh
+run and avoids loading arbitrary historical pickle objects. Certified fixture
+execution and its pinned dependencies are unchanged.

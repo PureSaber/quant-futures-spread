@@ -36,7 +36,7 @@ from core.portfolio.position_book import BacktestPositionBook
 from core.portfolio.sizing import compute_vol_per_layer, ref_leg_close_from_df
 from core.types import BarData
 from utils.logger import get_logger
-from utils.panel_registry import get_panel, register_panel
+from utils.panel_registry import clear_panels, discard_panel, get_panel, register_panel
 
 logger = get_logger("BacktestRunner")
 
@@ -492,7 +492,7 @@ def _run_entry(entry: dict, cfg: BacktestConfig, fl: FutureList, source,
 _WORKER_CTX: dict = {}
 
 
-def _init_worker(cfg: BacktestConfig, calendar: DominantCalendar | None) -> None:
+def _init_worker(cfg: BacktestConfig, calendar: DominantCalendar | None, panel=None) -> None:
     import logging
     bootstrap_strategy_path()
     logging.getLogger("Strategy").setLevel(logging.WARNING)
@@ -500,7 +500,9 @@ def _init_worker(cfg: BacktestConfig, calendar: DominantCalendar | None) -> None
     _WORKER_CTX["fl"] = FutureList.load(cfg.future_list_path)
     _WORKER_CTX["source"] = build_source(cfg.source_type, {"data_dir": cfg.data_dir})
     _WORKER_CTX["calendar"] = calendar
-    get_panel(cfg.run_id)
+    clear_panels()
+    if panel is not None:
+        register_panel(cfg.run_id, panel)
 
 
 def _run_entry_worker(entry: dict) -> InstanceResult:
@@ -519,7 +521,7 @@ def _run_all_instances(
         return [_run_entry(e, cfg, fl, source, calendar) for e in entries]
     worker_cfg = replace(cfg, strategies=[])
     with ProcessPoolExecutor(max_workers=jobs, initializer=_init_worker,
-                             initargs=(worker_cfg, calendar)) as ex:
+                             initargs=(worker_cfg, calendar, get_panel(cfg.run_id))) as ex:
         return list(ex.map(_run_entry_worker, entries))
 
 
@@ -551,8 +553,7 @@ def _maybe_build_sector_panel(
     entries: list[dict], cfg: BacktestConfig, fl, source,
     schedule: SpreadSchedule | None,
 ):
-    if get_panel(cfg.run_id) is not None:
-        return
+    discard_panel(cfg.run_id)
     if not any(strategy_needs_panel(str(e.get("module", ""))) for e in entries):
         return
     sector_map, industry_map = _sector_maps(cfg, entries)
